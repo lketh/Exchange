@@ -4,7 +4,7 @@ pragma solidity ^0.8.0;
 import "./interfaces/IERC20.sol";
 import "./Token.sol";
 import "./libraries/Ownable.sol";
-import {Math} from "./libraries/Math.sol";
+import {SomeMath} from "./libraries/SomeMath.sol";
 
 /* This exchange is based off of Uniswap V1. The original whitepaper for the constant product rule
  * can be found here:
@@ -12,7 +12,7 @@ import {Math} from "./libraries/Math.sol";
  */
 
 contract TokenExchange is Ownable {
-  using Math for uint256;
+  using SomeMath for uint256;
 
   address public admin;
 
@@ -62,7 +62,7 @@ contract TokenExchange is Ownable {
     token.transferFrom(msg.sender, address(this), amountTokens);
     eth_reserves = msg.value;
     token_reserves = amountTokens;
-    // k = eth_reserves.mul(token_reserves);
+    k = eth_reserves.mul(token_reserves);
   }
 
   // ============================================================
@@ -247,7 +247,7 @@ contract TokenExchange is Ownable {
    * Checks for Math.abs(token_reserves * eth_reserves - k) < (token_reserves + eth_reserves + 1));
    * to account for the small decimal errors during uint division rounding.
    */
-  function _checkRounding() private view {
+  function _checkRounding() private {
     uint256 check = token_reserves * eth_reserves;
     if (check >= k) {
       check = check - k;
@@ -255,6 +255,6 @@ contract TokenExchange is Ownable {
       check = k - check;
     }
     assert(check < (token_reserves + eth_reserves + 1));
-    // k = token_reserves * eth_reserves; // reset k due to small rounding errors
+    k = token_reserves * eth_reserves; // reset k due to small rounding errors
   }
 }
