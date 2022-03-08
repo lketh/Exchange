@@ -1,12 +1,10 @@
-// =================== CS251 DEX Project =================== //
-//        @authors: Simon Tao '22, Mathew Hogan '22          //
-// ========================================================= //
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.0;
 
-import "../interfaces/IERC20.sol";
-import "./token.sol";
-import "../libraries/ownable.sol";
+import "./interfaces/IERC20.sol";
+import "./Token.sol";
+import "./libraries/Ownable.sol";
+import {Math} from "./libraries/Math.sol";
 
 /* This exchange is based off of Uniswap V1. The original whitepaper for the constant product rule
  * can be found here:
@@ -14,9 +12,11 @@ import "../libraries/ownable.sol";
  */
 
 contract TokenExchange is Ownable {
+  using Math for uint256;
+
   address public admin;
 
-  address tokenAddr; // TODO: Paste token contract address here.
+  address private tokenAddr; // TODO: Paste token contract address here.
   Token private token = Token(tokenAddr); // TODO: Replace "Token" with your token class.
 
   // Liquidity pool for the exchange
@@ -62,7 +62,7 @@ contract TokenExchange is Ownable {
     token.transferFrom(msg.sender, address(this), amountTokens);
     eth_reserves = msg.value;
     token_reserves = amountTokens;
-    k = eth_reserves.mul(token_reserves);
+    // k = eth_reserves.mul(token_reserves);
   }
 
   // ============================================================
@@ -197,7 +197,6 @@ contract TokenExchange is Ownable {
         */
 
     /***************************/
-    // DO NOT CHANGE BELOW THIS LINE
     _checkRounding();
   }
 
@@ -236,7 +235,6 @@ contract TokenExchange is Ownable {
         */
 
     /**************************/
-    // DO NOT CHANGE BELOW THIS LINE
     _checkRounding();
   }
 
@@ -257,8 +255,6 @@ contract TokenExchange is Ownable {
       check = k - check;
     }
     assert(check < (token_reserves + eth_reserves + 1));
-    k = token_reserves * eth_reserves; // reset k due to small rounding errors
+    // k = token_reserves * eth_reserves; // reset k due to small rounding errors
   }
-
-  /***  Define helper functions for swaps here as needed ***/
 }

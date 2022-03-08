@@ -1,7 +1,7 @@
 import Footer from "./components/Footer";
-import Greeter from "./components/Greeter";
+import Exchange from "./components/Exchange";
 import Navbar from "./components/Navbar";
-import { GreeterProvider } from "./context/GreeterContext";
+import { ExchangeProvider } from "./context/ExchangeContext";
 import { WalletProvider } from "./context/WalletContext";
 
 function App() {
@@ -11,9 +11,9 @@ function App() {
         <div className="container">
           <Navbar />
           <div>
-            <GreeterProvider>
-              <Greeter />
-            </GreeterProvider>
+            <ExchangeProvider>
+              <Exchange />
+            </ExchangeProvider>
           </div>
           <Footer />
         </div>
