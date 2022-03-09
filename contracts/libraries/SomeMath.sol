@@ -11,4 +11,30 @@ library SomeMath {
     assert(c / a == b);
     return c;
   }
+
+  function div(uint256 a, uint256 b) internal pure returns (uint256) {
+    unchecked {
+      require(b > 0, "Can't divide by zero -.-");
+      return a / b;
+    }
+  }
+
+  function mod(
+    uint256 a,
+    uint256 b,
+    string memory errorMessage
+  ) internal pure returns (uint256) {
+    unchecked {
+      require(b > 0, errorMessage);
+      return a % b;
+    }
+  }
+
+  function add(uint256 a, uint256 b) internal pure returns (uint256) {
+    return a + b;
+  }
+
+  function sub(uint256 a, uint256 b) internal pure returns (uint256) {
+    return a - b;
+  }
 }

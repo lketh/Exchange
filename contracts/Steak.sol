@@ -4,7 +4,7 @@ pragma solidity ^0.8.0;
 import "./libraries/ERC20.sol";
 import "./libraries/Ownable.sol";
 
-contract Token is Ownable, ERC20 {
+contract Steak is Ownable, ERC20 {
   constructor() ERC20("STEAKSWAP", "STEAK") {}
 
   /**

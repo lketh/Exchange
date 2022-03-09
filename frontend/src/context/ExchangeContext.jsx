@@ -1,8 +1,8 @@
-import { ethers } from "ethers";
+import {ethers} from "ethers";
 import React from "react";
-import { getProvider } from "../provider";
-import { useWallet } from "./WalletContext";
-import exchangeArtifact from "../artifacts/contracts/Exchange.sol/TokenExchange.json";
+import {getProvider} from "../provider";
+import {useWallet} from "./WalletContext";
+import exchangeArtifact from "../artifacts/contracts/Exchange.sol/SteakExchange.json";
 import deployedAddress from "../helpers/deployedAddress.json";
 
 const initialState = {
@@ -12,8 +12,8 @@ const initialState = {
 
 const ExchangeContext = React.createContext(initialState);
 
-export const ExchangeProvider = ({ children }) => {
-  const { walletAddress } = useWallet();
+export const ExchangeProvider = ({children}) => {
+  const {walletAddress} = useWallet();
 
   const [message, setMessage] = React.useState();
   const [contract, setContract] = React.useState();
