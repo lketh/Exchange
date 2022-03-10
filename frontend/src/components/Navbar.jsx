@@ -20,7 +20,7 @@ export default function Navbar() {
 
   return (
     <nav className={styles.navbar}>
-      <div className={styles.brand}>DaapBoi</div>
+      <div className={styles.brand}>Steak Swap</div>
       <div className="nav-links">
         <span>{}</span>
         {walletAddress ? (

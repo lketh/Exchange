@@ -1,24 +1,22 @@
-// =================== CS251 DEX Project =================== //
-//        @authors: Simon Tao '22, Mathew Hogan '22          //
-// ========================================================= //
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.0;
 
-import "../interfaces/IERC20.sol";
-import "./token.sol";
-import "../libraries/ownable.sol";
+import "./interfaces/IERC20.sol";
+import "./Steak.sol";
+import "./libraries/Ownable.sol";
+import "./libraries/SomeMath.sol";
 
 /* This exchange is based off of Uniswap V1. The original whitepaper for the constant product rule
  * can be found here:
  * https://github.com/runtimeverification/verified-smart-contracts/blob/uniswap/uniswap/x-y-k.pdf
  */
 
-contract TokenExchange is Ownable {
+contract SteakExchange is Ownable {
+  using SomeMath for uint256;
+
   address public admin;
 
-  address tokenAddr; // TODO: Paste token contract address here.
-  Token private token = Token(tokenAddr); // TODO: Replace "Token" with your token class.
-
+  Steak private token;
   // Liquidity pool for the exchange
   uint256 public token_reserves = 0;
   uint256 public eth_reserves = 0;
@@ -30,11 +28,20 @@ contract TokenExchange is Ownable {
   uint256 private swap_fee_numerator = 0; // TODO Part 5: Set liquidity providers' returns.
   uint256 private swap_fee_denominator = 100;
 
+  // keeping track of LP shares - poolLP can be seen as a fictional LP "token" which is not distributed out but tracked internally - save gas
+  mapping(address => uint256) public poolLP;
+  uint256 public totalLP;
+  // This should match the JS decimalization to consider the exchange rates in a compatible way for slippage
+  uint256 public constant decimalization = 10**8;
+
   event AddLiquidity(address from, uint256 amount);
   event RemoveLiquidity(address to, uint256 amount);
+  event Received(address from, uint256 amountETH);
+  event Reinvested(uint256 amountETH, uint256 amountToken);
 
-  constructor() {
+  constructor(address _tokenAddres) {
     admin = msg.sender;
+    token = Steak(_tokenAddres);
   }
 
   /**
@@ -109,16 +116,37 @@ contract TokenExchange is Ownable {
    * fail. A successful transaction should update the state of the contract, including the
    * new constant product k, and then Emit an AddLiquidity event.
    *
-   * NOTE: You can change the inputs, or the scope of your function, as needed.
    */
-  function addLiquidity() external payable {
-    /******* TODO: Implement this function *******/
-    /* HINTS:
-            Calculate the liquidity to be added based on what was sent in and the prices.
-            If the caller possesses insufficient tokens to equal the ETH sent, then transaction must fail.
-            Update token_reserves, eth_reserves, and k.
-            Emit AddLiquidity event.
-        */
+  function addLiquidity(uint256 max_exchange_rate, uint256 min_exchange_rate)
+    external
+    payable
+  {
+    // Attempt to reinvest fees BEFORE adding liquidity; this will distribute as much of the accrued unassigned fees as possible to already EXISTING LPs
+    reinvestFees();
+
+    // Check the price of token against the min and max exchange rates acceptable; both are decimalized
+    require(
+      priceToken() >= min_exchange_rate && priceToken() <= max_exchange_rate,
+      "Slippage too high"
+    );
+
+    uint256 amountTokens = msg.value.mul(priceToken()).div(decimalization);
+
+    // Calculate new LP "token" amount received based on percent of existing ETH reserves
+    uint256 poolContrib = totalLP.mul(msg.value).div(eth_reserves);
+
+    // Keep track of LP "tokens", reserves, and k post changes
+    poolLP[msg.sender] = poolLP[msg.sender].add(poolContrib);
+    totalLP = totalLP.add(poolContrib);
+    eth_reserves = eth_reserves.add(msg.value);
+    token_reserves = token_reserves.add(amountTokens);
+    k = eth_reserves.mul(token_reserves);
+
+    // Transfers always last to eliminate reentrancy risk (mostly this matters on ETH)
+    // requirement for sender to have sufficient permissioned token will be checked by the transferFrom function - saves gas
+    token.transferFrom(msg.sender, address(this), amountTokens);
+
+    emit AddLiquidity(msg.sender, msg.value);
   }
 
   /**
@@ -131,14 +159,48 @@ contract TokenExchange is Ownable {
    *
    * NOTE: You can change the inputs, or the scope of your function, as needed.
    */
-  function removeLiquidity(uint256 amountETH) public payable {
-    /******* TODO: Implement this function *******/
-    /* HINTS:
-            Calculate the amount of your tokens that should be also removed.
-            Transfer the ETH and Token to the provider.
-            Update token_reserves, eth_reserves, and k.
-            Emit RemoveLiquidity event.
-        */
+  function removeLiquidity(
+    uint256 amountETH,
+    uint256 max_exchange_rate,
+    uint256 min_exchange_rate
+  ) public payable {
+    // fail if try to remove inexistent LP on "exit all" or another zero ETH call - save gas
+    require(amountETH > 0, "Nothing to remove");
+
+    // Attempt to reinvest fees BEFORE claim; this will distribute as much of the accrued unassigned fees as possible
+    reinvestFees();
+
+    // Check the price of token against the min and max exchange rates acceptable; both are decimalized
+    require(
+      priceToken() >= min_exchange_rate && priceToken() <= max_exchange_rate,
+      "Slippage too high"
+    );
+
+    uint256 amountTokens = amountETH.mul(priceToken()).div(decimalization);
+
+    // Calculate LP "token" amount to cancel based on percent of existing ETH reserves
+    uint256 poolContrib = totalLP.mul(amountETH).div(eth_reserves);
+
+    // require remaining ETH and token in the pool and sufficient LP claim to withdraw desired ETH
+    require(
+      eth_reserves > amountETH &&
+        token_reserves > amountTokens &&
+        poolLP[msg.sender] >= poolContrib,
+      "Trying to remove more than max available"
+    );
+
+    // Keep track of LP "tokens", reserves, and k post changes
+    poolLP[msg.sender] = poolLP[msg.sender].sub(poolContrib);
+    totalLP = totalLP.sub(poolContrib);
+    eth_reserves = eth_reserves.sub(amountETH);
+    token_reserves = token_reserves.sub(amountTokens);
+    k = eth_reserves.mul(token_reserves);
+
+    // Transfers always last to eliminate reentrancy risk (mostly this matters on ETH)
+    token.transfer(msg.sender, amountTokens);
+    payable(msg.sender).transfer(amountETH);
+
+    emit RemoveLiquidity(msg.sender, amountETH);
   }
 
   /**
@@ -147,17 +209,27 @@ contract TokenExchange is Ownable {
    * Calculate the maximum amount of liquidity that the sender is entitled to withdraw and then
    * calls removeLiquidity() to remove that amount of liquidity from the pool.
    *
-   * NOTE: You can change the inputs, or the scope of your function, as needed.
    */
-  function removeAllLiquidity() external payable {
-    /******* TODO: Implement this function *******/
-    /* HINTS:
-            Decide on the maximum allowable ETH that msg.sender can remove.
-            Call removeLiquidity().
-        */
-  }
+  function removeAllLiquidity(
+    uint256 max_exchange_rate,
+    uint256 min_exchange_rate
+  ) public payable {
+    // Can't remove all liquidity
+    require(
+      totalLP > poolLP[msg.sender],
+      "Can't have last provider withdraw all"
+    );
 
-  /***  Define helper functions for liquidity management here as needed: ***/
+    // Attempt to reinvest fees BEFORE claim; this will distribute as much of the accrued unassigned fees as possible
+    reinvestFees();
+
+    // Can withdraw as much of the pool ETH total as the ratio of LP "tokens" owned
+    removeLiquidity(
+      eth_reserves.mul(poolLP[msg.sender]).div(totalLP),
+      max_exchange_rate,
+      min_exchange_rate
+    );
+  }
 
   /* ========================= Swap Functions =========================  */
 
@@ -197,7 +269,6 @@ contract TokenExchange is Ownable {
         */
 
     /***************************/
-    // DO NOT CHANGE BELOW THIS LINE
     _checkRounding();
   }
 
@@ -236,7 +307,6 @@ contract TokenExchange is Ownable {
         */
 
     /**************************/
-    // DO NOT CHANGE BELOW THIS LINE
     _checkRounding();
   }
 
@@ -249,7 +319,7 @@ contract TokenExchange is Ownable {
    * Checks for Math.abs(token_reserves * eth_reserves - k) < (token_reserves + eth_reserves + 1));
    * to account for the small decimal errors during uint division rounding.
    */
-  function _checkRounding() private view {
+  function _checkRounding() private {
     uint256 check = token_reserves * eth_reserves;
     if (check >= k) {
       check = check - k;
@@ -260,5 +330,62 @@ contract TokenExchange is Ownable {
     k = token_reserves * eth_reserves; // reset k due to small rounding errors
   }
 
-  /***  Define helper functions for swaps here as needed ***/
+  /** Utility functions
+   * Function priceToken: Calculate the price of your token in ETH.
+   * You can change the inputs, or the scope of your function, as needed.
+   */
+  function priceToken() public view returns (uint256) {
+    return decimalization.mul(token_reserves).div(eth_reserves);
+  }
+
+  /**
+   * Function priceETH: Calculate the price of ETH for your token.
+   * You can change the inputs, or the scope of your function, as needed.
+   */
+  function priceETH() public view returns (uint256) {
+    return decimalization.mul(eth_reserves).div(token_reserves);
+  }
+
+  /**
+   * Function reinvestFees: reinvest everything earned.
+   */
+  function reinvestFees() public payable {
+    // Can only reinvest fees if have positive balances of both ETH and token, not yet assigned to pool. Note we first ensure this, so that exchanges with some rounding error can still function without underflows on fee calcs
+    // Also saves gas on second call from removeAllLiquidity -> removeLiquidity - just one if to evaluate
+    if (
+      address(this).balance > eth_reserves.add(msg.value) &&
+      token.balanceOf(address(this)) > token_reserves
+    ) {
+      // Calculate residual token and ETH balances in contract which are not yet assigned to pool reserves. These will usually be the fees plus any "gifts"
+      uint256 unassignedToken = token.balanceOf(address(this)).sub(
+        token_reserves
+      );
+
+      // Since we call this before adding new ETH liquidity to pool, need to make sure we don't yet include new add liquidity as "fee unassigned"
+      uint256 unassignedETH = address(this).balance.sub(msg.value).sub(
+        eth_reserves
+      );
+
+      // Project tentative maxETH that would balance all available unassigned tokens being added to pool reserves
+      uint256 maxETH = unassignedToken.mul(priceETH()).div(decimalization);
+      uint256 maxToken;
+
+      // The max ETH we can assign to the pool is the max between that unassigned ETH left and the exchange-ratio balancing for unassigned token; and vice-versa for token to assign
+      if (unassignedETH >= maxETH) {
+        // We have sufficient unassigned ETH to cover all the unassigned token; the token is limiting factor. Original maxETH projection correct; use up all unassigned token
+        maxToken = unassignedToken;
+      } else {
+        // We don't have sufficient unassigned ETH to cover all the unassigned token; ETH is the limiting factor. Update original projection; project maxToken
+        maxETH = unassignedETH;
+        maxToken = unassignedETH.mul(priceToken()).div(decimalization);
+      }
+
+      // We adjust the reserves and k, but not the LP "tokens" or LP totals - this way the reinvestment goes to existing LPs
+      eth_reserves = eth_reserves.add(maxETH);
+      token_reserves = token_reserves.add(maxToken);
+      k = eth_reserves.mul(token_reserves);
+
+      emit Reinvested(maxETH, maxToken);
+    }
+  }
 }
