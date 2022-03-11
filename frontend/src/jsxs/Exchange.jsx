@@ -8,7 +8,10 @@ export default function Exchange() {
 
   return (
     <div className="mt-2">
-      <div>Greeting from contract: </div> <h3>{greeting}</h3>
+      <div className="text-3xl font-extrabold text-transparent bg-clip-text bg-gradient-to-br from-pink-400 to-red-600">
+        Greeting from contract:{" "}
+      </div>{" "}
+      <h3>{greeting}</h3>
       <InputField
         value={newGreeting}
         placeholder="new greeting"
