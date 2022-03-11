@@ -1,6 +1,6 @@
-import Header from './components/Header';
-import MyAccount from './components/MyAccount';
-import Main from './components/Main';
+import Header from "./components/Header";
+import MyAccount from "./components/MyAccount";
+import Main from "./components/Main";
 // import Footer from './components/Footer';
 // import Exchange from './components/Exchange';
 // import Navbar from './components/Navbar';
@@ -9,20 +9,8 @@ import Main from './components/Main';
 
 function App() {
   return (
-    // <div className="main">
-    //   <WalletProvider>
-    //     <div className="container">
-    //       <Navbar />
-    //       <div>
-    //         <ExchangeProvider>
-    //           <Exchange />
-    //         </ExchangeProvider>
-    //       </div>
-    //       <Footer />
-    //     </div>
-    //   </WalletProvider>
-    // </div>
     <>
+      <div className="bg-pink-500">test tailwind (not working)</div>
       <Header></Header>
       <MyAccount></MyAccount>
       <Main></Main>

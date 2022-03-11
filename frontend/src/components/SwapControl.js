@@ -1,7 +1,7 @@
 /* eslint-disable jsx-a11y/heading-has-content */
 export default function Footer() {
   const testFunc = () => {
-    console.log('test');
+    console.log("test");
   };
 
   return (
