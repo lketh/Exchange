@@ -56,8 +56,6 @@ contract SteakExchange is Ownable {
    *  - the sender should send positive values for each
    */
   function createPool(uint256 amountTokens) external payable onlyOwner {
-    // This function is already implemented for you; no changes needed
-
     // require pool does not yet exist
     require(token_reserves == 0, "Token reserves was not 0");
     require(eth_reserves == 0, "ETH reserves was not 0.");
