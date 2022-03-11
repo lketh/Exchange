@@ -2,7 +2,7 @@
 <html lang="en">
   <head>
     <title>StanDex Exchange</title>
-    <link rel="stylesheet" type="text/css" href="./style.css">
+    <link rel="stylesheet" type="text/css" href="./style.css" />
     <script src="./web3.min.js"></script>
     <script src="./abi-decoder.js"></script>
     <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js"></script>
@@ -36,9 +36,9 @@
           <div id="swap-control">
             <h4 class="swap-control-title"> Swap Currencies: </h4>
             <label for="amt-to-swap">Amount:</label>
-            <input id="amt-to-swap" type="text"/>
+            <input id="amt-to-swap" type="text" />
             <label for="max-slippage-swap">Maximum Slippage Percentage:</label>
-            <input id="max-slippage-swap" type="text"/>
+            <input id="max-slippage-swap" type="text" />
             <div id="swap-control-buttons">
               <button id="swap-eth"></button>
               <button id="swap-token"></button>
@@ -47,9 +47,11 @@
           <div id="liquidity-control">
             <h4 class="liquidity-control-title"> Adjust Liquidity: </h4>
             <label for="amt-eth">Amount in Eth:</label>
-            <input id="amt-eth" type="text"/>
-            <label for="max-slippage-liquid">Maximum Slippage Percentage:</label>
-            <input id="max-slippage-liquid" type="text"/>
+            <input id="amt-eth" type="text" />
+            <label for="max-slippage-liquid"
+              >Maximum Slippage Percentage:</label
+            >
+            <input id="max-slippage-liquid" type="text" />
             <div id="liquidity-control-buttons">
               <button id="add-liquidity">Add Liquidity</button>
               <button id="remove-liquidity">Remove Liquidity</button>
@@ -59,8 +61,6 @@
         </article>
         <pre id="log"></pre>
       </div>
-      
-
     </div>
     <script src="./exchange.js"></script>
   </body>
