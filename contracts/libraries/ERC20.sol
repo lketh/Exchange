@@ -3,18 +3,20 @@
 
 pragma solidity ^0.8.0;
 
-import '../interfaces/IERC20.sol';
+import "../interfaces/IERC20.sol";
+import "../libraries/SomeMath.sol";
 
 /**
  * Simplified implementation of the {IERC20} interface. Read more about IERC20 on
  * the docs at: https://docs.openzeppelin.com/contracts/4.x/api/token/erc20#IERC20
  */
 contract ERC20 is IERC20 {
+  using SomeMath for uint256;
+
   mapping(address => uint256) private _balances;
   mapping(address => mapping(address => uint256)) private _allowances;
 
   uint256 private _totalSupply;
-
   string private _name;
   string private _symbol;
 
@@ -149,7 +151,7 @@ contract ERC20 is IERC20 {
     uint256 currentAllowance = _allowances[sender][msg.sender];
     require(
       currentAllowance >= amount,
-      'ERC20: transfer amount exceeds allowance'
+      "ERC20: transfer amount exceeds allowance"
     );
     unchecked {
       _approve(sender, msg.sender, currentAllowance - amount);
@@ -177,11 +179,11 @@ contract ERC20 is IERC20 {
     address recipient,
     uint256 amount
   ) internal virtual {
-    require(sender != address(0), 'ERC20: transfer from the zero address');
-    require(recipient != address(0), 'ERC20: transfer to the zero address');
+    require(sender != address(0), "ERC20: transfer from the zero address");
+    require(recipient != address(0), "ERC20: transfer to the zero address");
 
     uint256 senderBalance = _balances[sender];
-    require(senderBalance >= amount, 'ERC20: transfer amount exceeds balance');
+    require(senderBalance >= amount, "ERC20: transfer amount exceeds balance");
     unchecked {
       _balances[sender] = senderBalance - amount;
     }
@@ -208,10 +210,28 @@ contract ERC20 is IERC20 {
     address spender,
     uint256 amount
   ) internal virtual {
-    require(owner != address(0), 'ERC20: approve from the zero address');
-    require(spender != address(0), 'ERC20: approve to the zero address');
+    require(owner != address(0), "ERC20: approve from the zero address");
+    require(spender != address(0), "ERC20: approve to the zero address");
 
     _allowances[owner][spender] = amount;
     emit Approval(owner, spender, amount);
+  }
+
+  /**
+   * This internal function gives us the ability to create more tokens
+   *
+   * Requirements:
+   *
+   * - `_to` cannot be the null.
+   * - `_amount` cannot be the null.
+   */
+  function _mint(address _to, uint256 _amount) internal virtual {
+    require(_to != address(0), "ERC20: to address is not valid");
+    require(_amount > 0, "ERC20: amount is not valid");
+
+    _totalSupply = _totalSupply.add(_amount);
+    _balances[_to] = _balances[_to].add(_amount);
+
+    emit Mint(_to, _amount);
   }
 }

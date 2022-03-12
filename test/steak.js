@@ -1,10 +1,10 @@
-const { expect } = require('chai');
-const { ethers } = require('hardhat');
+const {expect} = require("chai");
+const {ethers} = require("hardhat");
 
-describe('Steak', function () {
+describe("Steak", function () {
   before(async function () {
     // Token for the exchange
-    const Steak = await ethers.getContractFactory('SteakSwapToken');
+    const Steak = await ethers.getContractFactory("SteakSwapToken");
     const steak = await Steak.deploy();
     await steak.deployed();
 
@@ -12,7 +12,7 @@ describe('Steak', function () {
     const [signer, random_account] = await ethers.provider.listAccounts();
   });
 
-  it('Should mint tokens', async function () {
+  it("Should mint tokens", async function () {
     // Check total supply
     // const initialBalance = steak.balanceOf(signer)
     // expect(initialBalance).to.equal(expectedInitialBalance + 1);
@@ -25,7 +25,7 @@ describe('Steak', function () {
     expect(true);
   });
 
-  it('Should not be able to mint tokens', async function () {
+  it("Should not be able to mint tokens", async function () {
     // Check total supply
     // const initialBalance = steak.balanceOf(signer)
     // expect(initialBalance).to.equal(expectedInitialBalance + 1);

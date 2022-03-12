@@ -1,11 +1,10 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.0;
 
-// import './interfaces/IERC20.sol';
-// import './libraries/SomeMath.sol';
-import '@openzeppelin/contracts/token/ERC20/IERC20.sol';
-import './libraries/Ownable.sol';
-import './SteakToken.sol';
+import "./interfaces/IERC20.sol";
+import "./libraries/SomeMath.sol";
+import "./libraries/Ownable.sol";
+import "./SteakToken.sol";
 
 /* This exchange is based off of Uniswap V1. The original whitepaper for the constant product rule
  * can be found here:
@@ -17,7 +16,7 @@ contract SteakExchange is Ownable {
 
   address public admin;
 
-  Steak private token;
+  SteakToken private token;
   // Liquidity pool for the exchange
   uint256 public token_reserves = 0;
   uint256 public eth_reserves = 0;
@@ -42,7 +41,7 @@ contract SteakExchange is Ownable {
 
   constructor(address _tokenAddres) {
     admin = msg.sender;
-    token = Steak(_tokenAddres);
+    token = SteakToken(_tokenAddres);
   }
 
   /**
@@ -58,12 +57,12 @@ contract SteakExchange is Ownable {
    */
   function createPool(uint256 amountTokens) external payable onlyOwner {
     // require pool does not yet exist
-    require(token_reserves == 0, 'Token reserves was not 0');
-    require(eth_reserves == 0, 'ETH reserves was not 0.');
+    require(token_reserves == 0, "Token reserves was not 0");
+    require(eth_reserves == 0, "ETH reserves was not 0.");
 
     // require nonzero values were sent
-    require(msg.value > 0, 'Need ETH to create pool.');
-    require(amountTokens > 0, 'Need tokens to create pool.');
+    require(msg.value > 0, "Need ETH to create pool.");
+    require(amountTokens > 0, "Need tokens to create pool.");
 
     token.transferFrom(msg.sender, address(this), amountTokens);
     eth_reserves = msg.value;
@@ -71,38 +70,24 @@ contract SteakExchange is Ownable {
     k = eth_reserves.mul(token_reserves);
   }
 
-  // ============================================================
-  //                    FUNCTIONS TO IMPLEMENT
-  // ============================================================
-
   // Given an amount of tokens, calculates the corresponding amount of ETH
   // based on the current exchange rate of the pool.
-  //
-  // NOTE: You can change the inputs, or the scope of your function, as needed.
   function amountTokenGivenETH(uint256 amountToken)
     public
     view
     returns (uint256)
   {
-    /******* TODO: Implement this function *******/
-    /* HINTS:
-                    Calculate how much ETH is of equivalent worth based on the current exchange rate.
-                */
+    return priceETH();
   }
 
   // Given an amount of ETH, calculates the corresponding amount of tokens
   // based on the current exchange rate of the pool.
-  //
-  // NOTE: You can change the inputs, or the scope of your function, as needed.
   function amountETHGivenToken(uint256 amountETH)
     public
     view
     returns (uint256)
   {
-    /******* TODO: Implement this function *******/
-    /* HINTS:
-                    Calculate how much of your token is of equivalent worth based on the current exchange rate.
-                */
+    return priceToken();
   }
 
   /* ========================= Liquidity Provider Functions =========================  */
@@ -126,7 +111,7 @@ contract SteakExchange is Ownable {
     // Check the price of token against the min and max exchange rates acceptable; both are decimalized
     require(
       priceToken() >= min_exchange_rate && priceToken() <= max_exchange_rate,
-      'Slippage too high'
+      "Slippage too high"
     );
 
     uint256 amountTokens = msg.value.mul(priceToken()).div(decimalization);
@@ -155,8 +140,6 @@ contract SteakExchange is Ownable {
    * entitled to remove the desired amount of liquidity, the transaction should fail. A
    * successful transaction should update the state of the contract, including the new constant
    * product k, transfer the ETH and Token to the sender and then Emit an RemoveLiquidity event.
-   *
-   * NOTE: You can change the inputs, or the scope of your function, as needed.
    */
   function removeLiquidity(
     uint256 amountETH,
@@ -164,7 +147,7 @@ contract SteakExchange is Ownable {
     uint256 min_exchange_rate
   ) public payable {
     // fail if try to remove inexistent LP on "exit all" or another zero ETH call - save gas
-    require(amountETH > 0, 'Nothing to remove');
+    require(amountETH > 0, "Nothing to remove");
 
     // Attempt to reinvest fees BEFORE claim; this will distribute as much of the accrued unassigned fees as possible
     reinvestFees();
@@ -172,7 +155,7 @@ contract SteakExchange is Ownable {
     // Check the price of token against the min and max exchange rates acceptable; both are decimalized
     require(
       priceToken() >= min_exchange_rate && priceToken() <= max_exchange_rate,
-      'Slippage too high'
+      "Slippage too high"
     );
 
     uint256 amountTokens = amountETH.mul(priceToken()).div(decimalization);
@@ -185,7 +168,7 @@ contract SteakExchange is Ownable {
       eth_reserves > amountETH &&
         token_reserves > amountTokens &&
         poolLP[msg.sender] >= poolContrib,
-      'Trying to remove more than max available'
+      "Trying to remove more than max available"
     );
 
     // Keep track of LP "tokens", reserves, and k post changes
@@ -239,36 +222,46 @@ contract SteakExchange is Ownable {
    * product property, and transfers that amount of ETH to the provider. If the caller
    * has insufficient tokens, the transaction should fail. If performing the swap would
    * exhaust the total supply of ETH inside the exchange, the transaction must fail.
-   *
-   * Part 4 – Expand the function to take in additional parameters as needed. If the
-   *          exchange rate is greater than the slippage limit, the swap should fail.
-   *
-   * Part 5 – Only exchange amountTokens minus the fee taken out for liquidity providers
-   *          and keep track of the liquidity fees to be added back into the pool.
-   *
-   * NOTE: You can change the inputs, or the scope of your function, as needed.
    */
-  function swapTokensForETH(uint256 amountTokens) external payable {
-    /******* TODO: Implement this function *******/
-    /* HINTS:
-                    Calculate amount of ETH should be swapped based on exchange rate.
-                    Transfer the ETH to the provider.
-                    If the caller possesses insufficient tokens, transaction must fail.
-                    If performing the swap would exhaus total ETH supply, transaction must fail.
-                    Update token_reserves and eth_reserves.
+  function swapTokensForETH(uint256 amountTokens, uint256 max_exchange_rate)
+    external
+    payable
+  {
+    // Calculate the new reserve projections which keep k constant after adding amountTokens KGB's to the pool, less fees
+    // The KGB remainder token (fee) just remains in the exchange account, but without being assigned to the pool yet
+    uint256 amountTokensExFee = amountTokens.sub(
+      amountTokens.mul(swap_fee_numerator).div(swap_fee_denominator)
+    );
+    uint256 newTokenReserve = token_reserves.add(amountTokensExFee);
+    uint256 newETHReserve = k.div(newTokenReserve);
 
-                    Part 4:
-                        Expand the function to take in addition parameters as needed.
-                        If current exchange_rate > slippage limit, abort the swap.
+    // Amount to return for the swap falls out directly from projected pool reserve
+    uint256 amountETH = eth_reserves.sub(newETHReserve);
 
-                    Part 5:
-                        Only exchange amountTokens * (1 - liquidity_percent),
-                            where % is sent to liquidity providers.
-                        Keep track of the liquidity fees to be added.
-                */
+    //  If performing the swap would exhaust total ETH supply, transaction must fail.
+    require(eth_reserves > amountETH, "This would drain the pool");
 
-    /***************************/
-    _checkRounding();
+    // Cannot receive less than max exchange slippage permitted - define this on ex fee basis
+    // See "DesignDoc" for important discussion of how slippage is implemented - on actual outcome.
+    require(
+      amountETH >= max_exchange_rate.mul(amountTokensExFee).div(decimalization),
+      "Slippage too high"
+    );
+
+    eth_reserves = newETHReserve;
+    token_reserves = newTokenReserve;
+
+    // Transfers always last to eliminate reentrancy risk (mostly this matters on ETH)
+    // Receive all tokens including fee
+    token.transferFrom(msg.sender, address(this), amountTokens);
+
+    // Send out the k-curve ETH less fees
+    payable(msg.sender).transfer(amountETH);
+
+    // Check for x * y == k, assuming x and y are rounded to the nearest integer.
+    // Check for Math.abs(token_reserves * eth_reserves - k) < (token_reserves + eth_reserves + 1));
+    //   to account for the small decimal errors during uint division rounding.
+    assert(_checkRounding() < (token_reserves.add(eth_reserves).add(1)));
   }
 
   /**
@@ -278,35 +271,40 @@ contract SteakExchange is Ownable {
    * product property, and transfers that number of tokens to the sender. If performing
    * the swap would exhaust the total supply of tokens inside the exchange, the transaction
    * must fail.
-   *
-   * Part 4 – Expand the function to take in additional parameters as needed. If the
-   *          exchange rate is greater than the slippage limit, the swap should fail.
-   *
-   * Part 5 – Only exchange amountTokens minus the fee taken out for liquidity providers
-   *          and keep track of the liquidity fees to be added back into the pool.
-   *
-   * NOTE: You can change the inputs, or the scope of your function, as needed.
    */
-  function swapETHForTokens() external payable {
-    /******* TODO: Implement this function *******/
-    /* HINTS:
-                    Calculate amount of your tokens should be swapped based on exchange rate.
-                    Transfer the amount of your tokens to the provider.
-                    If performing the swap would exhaus total token supply, transaction must fail.
-                    Update token_reserves and eth_reserves.
+  function swapETHForTokens(uint256 max_exchange_rate) external payable {
+    // Calculate the new reserve projections which keep k constant after adding the msg.value to ETH pool, less fees
+    // The ETH remainder (fee) just remains in the exchange account, but without being assigned to the pool yet
+    uint256 amountETH = msg.value.sub(
+      msg.value.mul(swap_fee_numerator).div(swap_fee_denominator)
+    );
+    uint256 newETHReserve = eth_reserves.add(amountETH);
+    uint256 newTokenReserve = k.div(newETHReserve);
 
-                    Part 4:
-                        Expand the function to take in addition parameters as needed.
-                        If current exchange_rate > slippage limit, abort the swap.
+    // Amount to return for the swap falls out directly from projected pool reserve
+    uint256 amountTokens = token_reserves.sub(newTokenReserve);
 
-                    Part 5:
-                        Only exchange amountTokens * (1 - %liquidity),
-                            where % is sent to liquidity providers.
-                        Keep track of the liquidity fees to be added.
-                */
+    //  If performing the swap would exhaust total token supply, transaction must fail.
+    require(token_reserves > amountTokens, "This would drain the pool");
 
-    /**************************/
-    _checkRounding();
+    // Cannot receive less than max exchange slippage permitted - define this on ex fee basis
+    // See "DesignDoc" for important discussion of how slippage is implemented - on actual outcome.
+    require(
+      amountTokens >= max_exchange_rate.mul(amountETH).div(decimalization),
+      "Slippage too high"
+    );
+
+    eth_reserves = newETHReserve;
+    token_reserves = newTokenReserve;
+
+    // Transfers always last to eliminate reentrancy risk (mostly this matters on ETH)
+    // Send out the k-curve exchanged tokens, ex fees
+    token.transfer(msg.sender, amountTokens);
+
+    // Check for x * y == k, assuming x and y are rounded to the nearest integer.
+    // Check for Math.abs(token_reserves * eth_reserves - k) < (token_reserves + eth_reserves + 1));
+    //   to account for the small decimal errors during uint division rounding.
+    assert(_checkRounding() < (token_reserves.add(eth_reserves).add(1)));
   }
 
   /**
@@ -318,7 +316,7 @@ contract SteakExchange is Ownable {
    * Checks for Math.abs(token_reserves * eth_reserves - k) < (token_reserves + eth_reserves + 1));
    * to account for the small decimal errors during uint division rounding.
    */
-  function _checkRounding() private {
+  function _checkRounding() private returns (uint256) {
     uint256 check = token_reserves * eth_reserves;
     if (check >= k) {
       check = check - k;
@@ -327,6 +325,8 @@ contract SteakExchange is Ownable {
     }
     assert(check < (token_reserves + eth_reserves + 1));
     k = token_reserves * eth_reserves; // reset k due to small rounding errors
+
+    return check;
   }
 
   /** Utility functions

@@ -82,4 +82,14 @@ interface IERC20 {
    * a call to {approve}. `value` is the new allowance.
    */
   event Approval(address indexed owner, address indexed spender, uint256 value);
+
+  /**
+   * @dev Emitted when there are new tokens created
+   */
+  event Mint(address indexed to, uint256 value);
+
+  /**
+   * @dev Emitted when there are tokens burned
+   */
+  event Burn(address from, uint256 value);
 }

@@ -1,26 +1,40 @@
-// We require the Hardhat Runtime Environment explicitly here. This is optional
-// but useful for running the script in a standalone fashion through `node <script>`.
-//
-// When running the script with `npx hardhat run <script>` you'll find the Hardhat
-// Runtime Environment's members available in the global scope.
-const hre = require('hardhat');
+const hre = require("hardhat");
 
 async function main() {
-  // Hardhat always runs the compile task when running scripts with its command
-  // line interface.
-  //
-  // If this script is run directly using `node` you may want to call compile
-  // manually to make sure everything is compiled
-  // await hre.run('compile');
+  const [signer] = await ethers.provider.listAccounts();
+  console.log(`Signing with address: ${signer}`);
 
-  // We get the contract to deploy
-  const SteakSwap = await hre.ethers.getContractFactory('SteakSwap');
-  const steakSwap = await SteakSwap.deploy();
-  await steakSwap.deployed();
+  // Deploy Steak token contract
+  const SteakToken = await hre.ethers.getContractFactory("SteakToken");
+  const steakToken = await SteakToken.deploy();
+  await steakToken.deployed();
+  console.log(`SteakToken deployed to: ${steakToken.address}`);
 
-  const SteakExchange = await hre.ethers.getContractFactory('SteakExchange');
-  const steakExchange = await SteakExchange.deploy(steakSwap.address);
+  // Deploy the exchange contract
+  const SteakExchange = await hre.ethers.getContractFactory("SteakExchange");
+  const steakExchange = await SteakExchange.deploy(steakToken.address);
   await steakExchange.deployed();
+  console.log(`SteakExchange deployed to: ${steakExchange.address}`);
+
+  // Create the initial LP pool
+  const steakBalance = await steakToken.balanceOf(signer);
+  console.log(`steakBalance: ${hre.ethers.utils.formatEther(steakBalance)}`);
+
+  const approve = await steakToken.approve(steakToken.address, steakBalance);
+  approve.wait();
+  const approveExchange = await steakToken.approve(
+    steakExchange.address,
+    steakBalance
+  );
+  approveExchange.wait();
+  console.log("Approved");
+
+  const etherPool = hre.ethers.utils.parseUnits("100", "ether");
+  const lp = await steakExchange.createPool(steakBalance, {
+    value: etherPool,
+  });
+  lp.wait();
+  console.log(`All done!`);
 }
 
 // We recommend this pattern to be able to use async/await everywhere
