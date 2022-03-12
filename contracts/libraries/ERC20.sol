@@ -3,7 +3,7 @@
 
 pragma solidity ^0.8.0;
 
-import "../interfaces/IERC20.sol";
+import '../interfaces/IERC20.sol';
 
 /**
  * Simplified implementation of the {IERC20} interface. Read more about IERC20 on
@@ -149,7 +149,7 @@ contract ERC20 is IERC20 {
     uint256 currentAllowance = _allowances[sender][msg.sender];
     require(
       currentAllowance >= amount,
-      "ERC20: transfer amount exceeds allowance"
+      'ERC20: transfer amount exceeds allowance'
     );
     unchecked {
       _approve(sender, msg.sender, currentAllowance - amount);
@@ -177,11 +177,11 @@ contract ERC20 is IERC20 {
     address recipient,
     uint256 amount
   ) internal virtual {
-    require(sender != address(0), "ERC20: transfer from the zero address");
-    require(recipient != address(0), "ERC20: transfer to the zero address");
+    require(sender != address(0), 'ERC20: transfer from the zero address');
+    require(recipient != address(0), 'ERC20: transfer to the zero address');
 
     uint256 senderBalance = _balances[sender];
-    require(senderBalance >= amount, "ERC20: transfer amount exceeds balance");
+    require(senderBalance >= amount, 'ERC20: transfer amount exceeds balance');
     unchecked {
       _balances[sender] = senderBalance - amount;
     }
@@ -208,8 +208,8 @@ contract ERC20 is IERC20 {
     address spender,
     uint256 amount
   ) internal virtual {
-    require(owner != address(0), "ERC20: approve from the zero address");
-    require(spender != address(0), "ERC20: approve to the zero address");
+    require(owner != address(0), 'ERC20: approve from the zero address');
+    require(spender != address(0), 'ERC20: approve to the zero address');
 
     _allowances[owner][spender] = amount;
     emit Approval(owner, spender, amount);
