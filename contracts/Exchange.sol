@@ -157,11 +157,11 @@ contract SteakExchange is Ownable {
    *
    * NOTE: You can change the inputs, or the scope of your function, as needed.
    */
-    function removeLiquidity(
+  function removeLiquidity(
     uint256 amountETH,
     uint256 max_exchange_rate,
     uint256 min_exchange_rate
-    ) public payable {
+  ) public payable {
     // fail if try to remove inexistent LP on "exit all" or another zero ETH call - save gas
     require(amountETH > 0, 'Nothing to remove');
 
