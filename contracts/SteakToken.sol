@@ -1,13 +1,14 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.0;
 
-import './libraries/ERC20.sol';
+// import './libraries/ERC20.sol';
 import './libraries/Ownable.sol';
+import '@openzeppelin/contracts/token/ERC20/ERC20.sol';
 
-contract Steak is Ownable, ERC20 {
+contract SteakToken is Ownable, ERC20 {
   bool enabled = true;
 
-  constructor() ERC20('STEAKSWAP', 'STK') {}
+  constructor() ERC20('SteakToken', 'STEAK') {}
 
   /**
    * Creates `amount` tokens, increasing the total supply.
@@ -19,17 +20,15 @@ contract Steak is Ownable, ERC20 {
    *  - the account who recieves the minted tokens cannot be the zero address
    *  - you can change the inputs or the scope of your function, as needed
    */
-  function _mint(uint256 amount) public onlyOwner {
-    /******* TODO: Implement this function *******/
-    require(enabled, 'Minting disabled');
-    _mint(address(this), amount);
+  function mint(address _to, uint256 _amount) public onlyOwner {
+    require(enabled);
+    _mint(_to, _amount);
   }
 
   /*
    * Disables the ability to mint tokens in the future.
    */
-  function _disable_mint() public onlyOwner {
-    /******* TODO: Implement this function *******/
+  function disable_mint() public onlyOwner {
     enabled = false;
   }
 }

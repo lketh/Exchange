@@ -1,10 +1,11 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.0;
 
-import './interfaces/IERC20.sol';
-import './Steak.sol';
+// import './interfaces/IERC20.sol';
+// import './libraries/SomeMath.sol';
+import '@openzeppelin/contracts/token/ERC20/IERC20.sol';
 import './libraries/Ownable.sol';
-import './libraries/SomeMath.sol';
+import './SteakToken.sol';
 
 /* This exchange is based off of Uniswap V1. The original whitepaper for the constant product rule
  * can be found here:
