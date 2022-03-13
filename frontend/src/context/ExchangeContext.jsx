@@ -37,8 +37,7 @@ export const ExchangeProvider = ({ children }) => {
       setEthLiquidity(await getEthLiquidity());
       setTokenEthRate(await getTokenEthRate());
       setEthTokenRate(await getEthTokenRate());
-      console.log(await getEthTokenRate());
-      console.log("finish init");
+      console.log("Finish init");
     }
 
     if (walletAddress) {
