@@ -43,7 +43,7 @@ export const ExchangeProvider = ({ children }) => {
     if (walletAddress) {
       init();
     }
-  }, [walletAddress, tokenLiquidity]);
+  }, [walletAddress, tokenLiquidity, ethLiquidity]);
 
   async function getTokenLiquidity() {
     if (contract) {
