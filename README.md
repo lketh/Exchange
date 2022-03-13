@@ -1,4 +1,5 @@
 # Simple hardhat react daap(javascript)
+
 ## Development setup
 
 1. Clone this repo
@@ -10,7 +11,6 @@
 7. `npm run frontend`
 
 # Advanced Sample Hardhat Project
-
 
 This project demonstrates an advanced Hardhat use case, integrating other tools commonly used alongside Hardhat in the ecosystem.
 
@@ -53,4 +53,11 @@ Then, copy the deployment address and paste it in to replace `DEPLOYED_CONTRACT_
 npx hardhat verify --network ropsten DEPLOYED_CONTRACT_ADDRESS "Hello, Hardhat!"
 ```
 
-:) 
+# ToDo
+
+[] Ability to trade eth for steaks.
+[] Ability to trade steaks for eth.
+[] Ability to add steak-eth to the liquidity pool.
+[] Ability to remove some steak-eth from the liquidity pool.
+[] Ability to remove all steak-eth from the liquidity pool.
+[] Stylize so it doesn't look like a 90's page.
