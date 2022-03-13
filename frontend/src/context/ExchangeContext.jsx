@@ -50,7 +50,6 @@ export const ExchangeProvider = ({ children }) => {
     if (contract) {
       try {
         const liquidity = (await contract.token_reserves()) * 10 ** -18;
-        console.log(liquidity);
         return liquidity;
       } catch (err) {
         console.log(err);
@@ -92,6 +91,7 @@ export const ExchangeProvider = ({ children }) => {
         ethLiquidity: ethLiquidity,
         tokenEthRate: tokenEthRate,
         ethTokenRate: ethTokenRate,
+        contract: contract,
       }}
     >
       {children}

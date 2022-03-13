@@ -77,7 +77,7 @@ contract SteakExchange is Ownable {
     view
     returns (uint256)
   {
-    return priceETH();
+    return amountToken * priceETH();
   }
 
   // Given an amount of ETH, calculates the corresponding amount of tokens
@@ -87,7 +87,7 @@ contract SteakExchange is Ownable {
     view
     returns (uint256)
   {
-    return priceToken();
+    return amountETH * priceToken();
   }
 
   /* ========================= Liquidity Provider Functions =========================  */
