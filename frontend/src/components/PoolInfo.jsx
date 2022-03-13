@@ -1,9 +1,8 @@
-import { ethers } from "ethers";
-import React, { useState } from "react";
+import React from "react";
 import { useExchange } from "../context/ExchangeContext";
 
 export default function PoolInfo() {
-  const { tokenLiquidity, ethLiquidity, tokenEthRate, ethTokenRate, contract } =
+  const { tokenLiquidity, ethLiquidity, tokenEthRate, ethTokenRate } =
     useExchange();
 
   return (
