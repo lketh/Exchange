@@ -1,48 +1,83 @@
-import {ethers} from "ethers";
+import { ethers } from "ethers";
 import React from "react";
-import {getProvider} from "../provider";
-import {useWallet} from "./WalletContext";
+import { getProvider } from "../provider";
+import { useWallet } from "./WalletContext";
 import exchangeArtifact from "../artifacts/contracts/Exchange.sol/SteakExchange.json";
-import deployedAddress from "../helpers/deployedAddress.json";
 
 const initialState = {
-  greeting: "",
-  updateGreeting: () => {},
+  tokenLiquidity: 0,
+  ethLiquidity: 0,
+  tokenEthRate: 0,
+  ethTokenRate: 0,
 };
 
 const ExchangeContext = React.createContext(initialState);
 
-export const ExchangeProvider = ({children}) => {
-  const {walletAddress} = useWallet();
+export const ExchangeProvider = ({ children }) => {
+  const { walletAddress } = useWallet();
 
-  const [message, setMessage] = React.useState();
   const [contract, setContract] = React.useState();
+  const [tokenLiquidity, setTokenLiquidity] = React.useState(0);
+  const [ethLiquidity, setEthLiquidity] = React.useState(0);
+  const [tokenEthRate, setTokenEthRate] = React.useState(0);
+  const [ethTokenRate, setEthTokenRate] = React.useState(0);
 
   React.useEffect(() => {
     async function init() {
       const _provider = await getProvider();
       const signer = _provider.getSigner();
       const _contract = new ethers.Contract(
-        deployedAddress.Exchange,
+        "0xf5059a5D33d5853360D16C683c16e67980206f36",
         exchangeArtifact.abi,
         signer
       );
       setContract(_contract);
-      const _greeting = await _contract.greet();
-      setMessage(_greeting);
+      setTokenLiquidity(await getTokenLiquidity());
+      setEthLiquidity(await getEthLiquidity());
+      setTokenEthRate(await getTokenEthRate());
+      setEthTokenRate(await getEthTokenRate());
+      console.log(await getEthTokenRate());
+      console.log("finish init");
     }
+
     if (walletAddress) {
       init();
     }
-  }, [walletAddress]);
+  }, [walletAddress, tokenLiquidity]);
 
-  async function updateGreeting(_greeting) {
+  async function getTokenLiquidity() {
     if (contract) {
       try {
-        const tx = await contract.setGreeting(_greeting);
-        await tx.wait();
-        const _newGreeting = await contract.greet();
-        setMessage(_newGreeting);
+        const liquidity = (await contract.token_reserves()) * 10 ** -18;
+        console.log(liquidity);
+        return liquidity;
+      } catch (err) {
+        console.log(err);
+      }
+    }
+  }
+  async function getEthLiquidity() {
+    if (contract) {
+      try {
+        return (await contract.eth_reserves()) * 10 ** -18;
+      } catch (err) {
+        console.log(err);
+      }
+    }
+  }
+  async function getTokenEthRate() {
+    if (contract) {
+      try {
+        return tokenLiquidity / ethLiquidity;
+      } catch (err) {
+        console.log(err);
+      }
+    }
+  }
+  async function getEthTokenRate() {
+    if (contract) {
+      try {
+        return ethLiquidity / tokenLiquidity;
       } catch (err) {
         console.log(err);
       }
@@ -52,8 +87,10 @@ export const ExchangeProvider = ({children}) => {
   return (
     <ExchangeContext.Provider
       value={{
-        greeting: message || "",
-        updateGreeting,
+        tokenLiquidity: tokenLiquidity,
+        ethLiquidity: ethLiquidity,
+        tokenEthRate: tokenEthRate,
+        ethTokenRate: ethTokenRate,
       }}
     >
       {children}
