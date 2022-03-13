@@ -1,3 +1,4 @@
+const fs = require("fs");
 const hre = require("hardhat");
 
 async function main() {
@@ -35,6 +36,20 @@ async function main() {
   });
   lp.wait();
   console.log(`All done!`);
+
+  // We write the contracts addresses to a file to read from the frontend
+  let data = {
+    SteakTokenAddress: steakToken.address,
+    SteakExchangeAddress: steakExchange.address,
+  };
+  fs.writeFile(
+    "./frontend/src/artifacts/contracts//addresses.json",
+    JSON.stringify(data),
+    function (err) {
+      if (err) throw err;
+      console.log("Contract addresses saved successfully");
+    }
+  );
 }
 
 // We recommend this pattern to be able to use async/await everywhere

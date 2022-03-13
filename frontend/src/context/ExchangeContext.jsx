@@ -3,6 +3,7 @@ import React from "react";
 import { getProvider } from "../provider";
 import { useWallet } from "./WalletContext";
 import exchangeArtifact from "../artifacts/contracts/Exchange.sol/SteakExchange.json";
+import addresses from "../artifacts/contracts/addresses.json";
 
 const initialState = {
   tokenLiquidity: 0,
@@ -27,7 +28,7 @@ export const ExchangeProvider = ({ children }) => {
       const _provider = await getProvider();
       const signer = _provider.getSigner();
       const _contract = new ethers.Contract(
-        "0xf5059a5D33d5853360D16C683c16e67980206f36",
+        addresses.SteakExchangeAddress,
         exchangeArtifact.abi,
         signer
       );
