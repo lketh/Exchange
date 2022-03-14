@@ -1,5 +1,5 @@
-import React from "react";
-import { useExchange } from "../context/ExchangeContext";
+import React from 'react';
+import { useExchange } from '../context/ExchangeContext';
 
 export default function PoolInfo() {
   const { tokenLiquidity, ethLiquidity, tokenEthRate, ethTokenRate } =
@@ -22,12 +22,12 @@ export default function PoolInfo() {
         <br />
 
         <span>
-          <strong>Token/eth rate:</strong> {tokenEthRate}
+          <strong>Token/ETH Rate:</strong> {tokenEthRate}
         </span>
         <br />
 
         <span>
-          <strong>ethTokenRate:</strong> {ethTokenRate}
+          <strong>ETH/Token Rate:</strong> {ethTokenRate}
         </span>
         <br />
       </div>

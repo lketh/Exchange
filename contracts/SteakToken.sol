@@ -1,14 +1,14 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.0;
 
-import "./libraries/ERC20.sol";
-import "./libraries/Ownable.sol";
+import './libraries/ERC20.sol';
+import './libraries/Ownable.sol';
 
 contract SteakToken is Ownable, ERC20 {
   bool enabled = true;
 
-  constructor() ERC20("SteakToken", "STEAK") {
-    uint256 initialSupply = 210000 * (10**18);
+  constructor() ERC20('SteakToken', 'STEAK') {
+    uint256 initialSupply = 21000 * (10**18);
     _mint(msg.sender, initialSupply);
   }
 
@@ -16,7 +16,7 @@ contract SteakToken is Ownable, ERC20 {
    * Creates `amount` tokens, increasing the total supply.
    */
   function mint(address _to, uint256 _amount) public onlyOwner {
-    require(enabled, "The contract is paused");
+    require(enabled, 'The contract is paused');
     _mint(_to, _amount);
   }
 
@@ -24,7 +24,7 @@ contract SteakToken is Ownable, ERC20 {
    * Disables the ability to mint tokens in the future.
    */
   function disable_mint() public onlyOwner {
-    require(enabled, "The contract is paused");
+    require(enabled, 'The contract is paused');
     enabled = false;
   }
 
@@ -32,7 +32,7 @@ contract SteakToken is Ownable, ERC20 {
    * Enables the ability to mint tokens in the future.
    */
   function enable_mint() public onlyOwner {
-    require(!enabled, "The contract is not paused");
+    require(!enabled, 'The contract is not paused');
     enabled = true;
   }
 }
