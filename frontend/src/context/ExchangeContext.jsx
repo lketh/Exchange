@@ -68,6 +68,12 @@ export const ExchangeProvider = ({ children }) => {
     if (contract) {
       try {
         return tokenLiquidity / ethLiquidity;
+        console.log(
+          "tokenLiquidity:",
+          tokenLiquidity,
+          "ethLiquidity:",
+          ethLiquidity
+        );
       } catch (err) {
         console.log(err);
       }

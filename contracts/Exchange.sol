@@ -109,10 +109,10 @@ contract SteakExchange is Ownable {
     reinvestFees();
 
     // Check the price of token against the min and max exchange rates acceptable; both are decimalized
-    require(
-      priceToken() >= min_exchange_rate && priceToken() <= max_exchange_rate,
-      "Slippage too high"
-    );
+    // require(
+    //   priceToken() >= min_exchange_rate && priceToken() <= max_exchange_rate,
+    //   "Slippage too high"
+    // );
 
     uint256 amountTokens = msg.value.mul(priceToken()).div(decimalization);
 
@@ -153,10 +153,10 @@ contract SteakExchange is Ownable {
     reinvestFees();
 
     // Check the price of token against the min and max exchange rates acceptable; both are decimalized
-    require(
-      priceToken() >= min_exchange_rate && priceToken() <= max_exchange_rate,
-      "Slippage too high"
-    );
+    // require(
+    //   priceToken() >= min_exchange_rate && priceToken() <= max_exchange_rate,
+    //   "Slippage too high"
+    // );
 
     uint256 amountTokens = amountETH.mul(priceToken()).div(decimalization);
 
@@ -243,10 +243,10 @@ contract SteakExchange is Ownable {
 
     // Cannot receive less than max exchange slippage permitted - define this on ex fee basis
     // See "DesignDoc" for important discussion of how slippage is implemented - on actual outcome.
-    require(
-      amountETH >= max_exchange_rate.mul(amountTokensExFee).div(decimalization),
-      "Slippage too high"
-    );
+    // require(
+    //   amountETH >= max_exchange_rate.mul(amountTokensExFee).div(decimalization),
+    //   "Slippage too high"
+    // );
 
     eth_reserves = newETHReserve;
     token_reserves = newTokenReserve;
@@ -289,10 +289,10 @@ contract SteakExchange is Ownable {
 
     // Cannot receive less than max exchange slippage permitted - define this on ex fee basis
     // See "DesignDoc" for important discussion of how slippage is implemented - on actual outcome.
-    require(
-      amountTokens >= max_exchange_rate.mul(amountETH).div(decimalization),
-      "Slippage too high"
-    );
+    // require(
+    //   amountTokens >= max_exchange_rate.mul(amountETH).div(decimalization),
+    //   "Slippage too high"
+    // );
 
     eth_reserves = newETHReserve;
     token_reserves = newTokenReserve;
