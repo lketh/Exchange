@@ -117,7 +117,17 @@ contract SteakExchange is Ownable {
     // Attempt to reinvest fees BEFORE adding liquidity; this will distribute as much of the accrued unassigned fees as possible to already EXISTING LPs
     reinvestFees();
 
+<<<<<<< HEAD
     uint256 amountTokens = (msg.value * priceToken());
+=======
+    // Check the price of token against the min and max exchange rates acceptable; both are decimalized
+    // require(
+    //   priceToken() >= min_exchange_rate && priceToken() <= max_exchange_rate,
+    //   "Slippage too high"
+    // );
+
+    uint256 amountTokens = msg.value.mul(priceToken()).div(decimalization);
+>>>>>>> c35300c6b4d181a201b34ec2677ca75dabeef6c9
 
     // Calculate new LP "token" amount received based on percent of existing ETH reserves
     uint256 poolContrib = (totalLP * msg.value) / eth_reserves;
@@ -151,7 +161,17 @@ contract SteakExchange is Ownable {
     // Attempt to reinvest fees BEFORE claim; this will distribute as much of the accrued unassigned fees as possible
     reinvestFees();
 
+<<<<<<< HEAD
     uint256 amountTokens = (amountETH * priceToken());
+=======
+    // Check the price of token against the min and max exchange rates acceptable; both are decimalized
+    // require(
+    //   priceToken() >= min_exchange_rate && priceToken() <= max_exchange_rate,
+    //   "Slippage too high"
+    // );
+
+    uint256 amountTokens = amountETH.mul(priceToken()).div(decimalization);
+>>>>>>> c35300c6b4d181a201b34ec2677ca75dabeef6c9
 
     // Calculate LP "token" amount to cancel based on percent of existing ETH reserves
     uint256 poolContrib = (totalLP * amountETH) / eth_reserves;
@@ -225,10 +245,17 @@ contract SteakExchange is Ownable {
 
     // Cannot receive less than max exchange slippage permitted - define this on ex fee basis
     // See "DesignDoc" for important discussion of how slippage is implemented - on actual outcome.
+<<<<<<< HEAD
     require(
       amountETH >= max_exchange_rate.mul(amountTokensExFee).div(decimalization),
       'Slippage too high'
     );
+=======
+    // require(
+    //   amountETH >= max_exchange_rate.mul(amountTokensExFee).div(decimalization),
+    //   "Slippage too high"
+    // );
+>>>>>>> c35300c6b4d181a201b34ec2677ca75dabeef6c9
 
     eth_reserves = newETHReserve;
     token_reserves = newTokenReserve;
@@ -270,10 +297,17 @@ contract SteakExchange is Ownable {
 
     // Cannot receive less than max exchange slippage permitted - define this on ex fee basis
     // See "DesignDoc" for important discussion of how slippage is implemented - on actual outcome.
+<<<<<<< HEAD
     require(
       amountTokens >= max_exchange_rate.mul(amountETH).div(decimalization),
       'Slippage too high'
     );
+=======
+    // require(
+    //   amountTokens >= max_exchange_rate.mul(amountETH).div(decimalization),
+    //   "Slippage too high"
+    // );
+>>>>>>> c35300c6b4d181a201b34ec2677ca75dabeef6c9
 
     eth_reserves = newETHReserve;
     token_reserves = newTokenReserve;

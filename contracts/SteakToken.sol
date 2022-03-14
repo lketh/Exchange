@@ -8,7 +8,7 @@ contract SteakToken is Ownable, ERC20 {
   bool enabled = true;
 
   constructor() ERC20('SteakToken', 'STEAK') {
-    uint256 initialSupply = 21000 * (10**18);
+    uint256 initialSupply = 100 * (10**18); //210000
     _mint(msg.sender, initialSupply);
   }
 
