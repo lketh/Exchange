@@ -56,8 +56,9 @@ npx hardhat verify --network ropsten DEPLOYED_CONTRACT_ADDRESS "Hello, Hardhat!"
 # ToDo
 
 [X] Ability to trade eth for steaks.
-[] Ability to trade steaks for eth.
+[X] Ability to trade steaks for eth.
 [X] Ability to add steak-eth to the liquidity pool.
 [X] Ability to remove some steak-eth from the liquidity pool.
 [X] Ability to remove all steak-eth from the liquidity pool.
+[] Complete the tests in the tests directory.
 [] Stylize so it doesn't look like a 90's page.

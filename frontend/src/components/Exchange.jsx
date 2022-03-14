@@ -5,46 +5,10 @@ import Button from "./Button";
 import InputField from "./InputField";
 
 export default function Exchange() {
-  const { ethTokenRate, tokenEthRate, steakExchangeContract } = useExchange();
+  const { ethTokenRate, steakExchangeContract } = useExchange();
   const [amount, setAmount] = React.useState(0);
-  // const [estimatedPriceForSteak, setEstimatedPriceForSteak] = React.useState('0');
-  // const [estimatedPriceForETH, setEstimatedPriceForETH] = React.useState('0');
-
-  // async function getEstimatedPriceForSteak() {
-  //   if (steakExchangeContract) {
-  //     try {
-  //       console.log('ethTokenRate: ', ethTokenRate);
-  //       console.log('ethTokenRate: ', ethTokenRate);
-  //       console.log('amount: ', amount);
-  //       const minTokenPriceInEth = ethTokenRate * amount;
-  //       setEstimatedPriceForSteak(minTokenPriceInEth);
-  //       console.log('minTokenPriceInEth: ', minTokenPriceInEth);
-  //     } catch (err) {
-  //       console.error(err);
-  //     }
-  //   }
-  // }
-
-  // async function getEstimatedPriceForETH() {
-  //   if (steakExchangeContract) {
-  //     try {
-  //       console.log('tokenEthRate: ', tokenEthRate);
-  //       console.log('amount: ', amount);
-  //       const minETHPriceInToken = tokenEthRate * amount;
-  //       setEstimatedPriceForETH(minETHPriceInToken);
-  //       console.log(
-  //         '🚀 ~ file: Exchange.jsx ~ line 30 ~ getEstimatedPriceForETH ~ minETHPriceInToken',
-  //         minETHPriceInToken
-  //       );
-  //     } catch (err) {
-  //       console.error(err);
-  //     }
-  //   }
-  // }
 
   async function executeBuySteak() {
-    // await getEstimatedPriceForSteak(amount);
-
     if (steakExchangeContract) {
       try {
         console.log("estimatedPriceForSteak: ", ethTokenRate * amount);
@@ -61,12 +25,11 @@ export default function Exchange() {
   }
 
   async function executeBuyETH() {
-    // await getEstimatedPriceForETH(amount);
-
     if (steakExchangeContract) {
       try {
-        console.log("estimatedPriceForETH: ", tokenEthRate * amount);
-        await steakExchangeContract.swapTokensForETH(tokenEthRate * amount);
+        await steakExchangeContract.swapTokensForETH(
+          ethers.utils.parseEther(amount.toString()).toString()
+        );
       } catch (err) {
         console.error(err);
       }
@@ -85,12 +48,8 @@ export default function Exchange() {
             e.target.value == ""
           ) {
             setAmount("0");
-            // setEstimatedPriceForSteak('0');
-            // setEstimatedPriceForETH('0');
           } else {
             setAmount(e.target.value);
-            // getEstimatedPriceForETH(e.target.value);
-            // getEstimatedPriceForSteak(e.target.value);
           }
         }}
       />
