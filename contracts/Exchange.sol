@@ -2,7 +2,6 @@
 pragma solidity ^0.8.12;
 
 import './interfaces/IERC20.sol';
-import './libraries/SomeMath.sol';
 import './libraries/Ownable.sol';
 import './SteakToken.sol';
 

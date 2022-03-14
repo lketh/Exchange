@@ -1,113 +1,104 @@
-import React from 'react';
 import { ethers } from 'ethers';
+import React from 'react';
 import { useExchange } from '../context/ExchangeContext';
 import Button from './Button';
 import InputField from './InputField';
 
 export default function Exchange() {
-  const { ethTokenRate, tokenEthRate, contract } = useExchange();
-  const [amountToken, setAmountToken] = React.useState(0);
-  const [amountEth, setAmountEth] = React.useState(0);
-  const [estimatedPriceInEth, setEstimatedPriceInEth] = React.useState('0');
-  const [estimatedPriceInToken, setEstimatedPriceInToken] = React.useState('0');
+  const { ethTokenRate, tokenEthRate, steakExchangeContract } = useExchange();
+  const [amount, setAmount] = React.useState(0);
+  // const [estimatedPriceForSteak, setEstimatedPriceForSteak] = React.useState('0');
+  // const [estimatedPriceForETH, setEstimatedPriceForETH] = React.useState('0');
 
-  // Buy token with eth
-  async function getEstimatedPriceInEth(amount) {
-    if (contract) {
-      try {
-        const minTokenPriceInEth = ethTokenRate * amount;
-        setEstimatedPriceInEth(minTokenPriceInEth);
-      } catch (err) {
-        console.log(err);
-      }
-    }
-  }
-
-  // // Buy eth with token
-  // async function getEstimatedPriceInToken(amount) {
-  //   if (contract) {
+  // async function getEstimatedPriceForSteak() {
+  //   if (steakExchangeContract) {
   //     try {
-  //       const minEthPriceInToken = tokenEthRate * amount;
-  //       setEstimatedPriceInToken(minEthPriceInToken);
+  //       console.log('ethTokenRate: ', ethTokenRate);
+  //       console.log('ethTokenRate: ', ethTokenRate);
+  //       console.log('amount: ', amount);
+  //       const minTokenPriceInEth = ethTokenRate * amount;
+  //       setEstimatedPriceForSteak(minTokenPriceInEth);
+  //       console.log('minTokenPriceInEth: ', minTokenPriceInEth);
   //     } catch (err) {
-  //       console.log(err);
+  //       console.error(err);
   //     }
   //   }
   // }
 
-  // Buy token with eth
-  async function executeBuyToken() {
-    if (contract) {
+  // async function getEstimatedPriceForETH() {
+  //   if (steakExchangeContract) {
+  //     try {
+  //       console.log('tokenEthRate: ', tokenEthRate);
+  //       console.log('amount: ', amount);
+  //       const minETHPriceInToken = tokenEthRate * amount;
+  //       setEstimatedPriceForETH(minETHPriceInToken);
+  //       console.log(
+  //         '🚀 ~ file: Exchange.jsx ~ line 30 ~ getEstimatedPriceForETH ~ minETHPriceInToken',
+  //         minETHPriceInToken
+  //       );
+  //     } catch (err) {
+  //       console.error(err);
+  //     }
+  //   }
+  // }
+
+  async function executeBuySteak() {
+    // await getEstimatedPriceForSteak(amount);
+
+    if (steakExchangeContract) {
       try {
-        await contract.swapETHForTokens(amountToken, {
+        console.log('estimatedPriceForSteak: ', ethTokenRate * amount);
+        await steakExchangeContract.swapETHForTokens({
           value: ethers.utils.parseUnits(
-            estimatedPriceInEth.toString(),
+            (ethTokenRate * amount).toString(),
             'ether'
           )
         });
       } catch (err) {
-        console.log(err);
+        console.error(err);
       }
     }
   }
 
-  // // Buy ETH with token
-  // async function executeBuyEth() {
-  //   if (contract) {
-  //     try {
-  //       await contract.swapTokensForETH(amountEth, {
-  //         value: ethers.utils.parseUnits(
-  //           estimatedPriceInToken.toString(),
-  //           "Steak"
-  //         ),
-  //       });
-  //     } catch (err) {
-  //       console.log(err);
-  //     }
-  //   }
-  // }
+  async function executeBuyETH() {
+    // await getEstimatedPriceForETH(amount);
 
-  function updatePriceInEth(amount) {
-    if (amount == undefined || amount == null || amount == '') {
-      setEstimatedPriceInEth('0');
-    } else {
-      getEstimatedPriceInEth(amount);
+    if (steakExchangeContract) {
+      try {
+        console.log('estimatedPriceForETH: ', tokenEthRate * amount);
+        await steakExchangeContract.swapTokensForETH(tokenEthRate * amount);
+      } catch (err) {
+        console.error(err);
+      }
     }
   }
 
-  React.useEffect(() => {
-    updatePriceInEth(amountToken);
-  }, [amountToken]);
-
   return (
     <div className="mt-2">
-      {/* Buy token with eth */}
       <InputField
-        placeholder="Buy Steak"
+        placeholder="Trade ETH for STEAK"
         onChange={(e) => {
-          setAmountToken(e.target.value.toString());
-        }}
-      />
-      <Button onClick={() => executeBuyToken()}>Trade</Button>
-      <br />
-
-      {/* Buy eth with token
-      <InputField
-        placeholder="Buy ETH"
-        onChange={(e) => {
-          setAmountEth(e.target.value.toString());
+          setAmount(e.target.value);
           if (
             e.target.value == undefined ||
             e.target.value == null ||
             e.target.value == ''
           ) {
-            setEstimatedPriceInToken("0");
+            setAmount('0');
+            // setEstimatedPriceForSteak('0');
+            // setEstimatedPriceForETH('0');
           } else {
-            getEstimatedPriceInToken(e.target.value);
+            setAmount(e.target.value);
+            // getEstimatedPriceForETH(e.target.value);
+            // getEstimatedPriceForSteak(e.target.value);
           }
         }}
       />
-      <Button onClick={() => executeBuyEth()}>Trade</Button> */}
+      <br />
+      <Button onClick={() => executeBuySteak()}>Trade ETH to STEAK</Button>
+      <br />
+      <br />
+      <Button onClick={() => executeBuyETH()}>Trade STEAK to ETH</Button>
     </div>
   );
 }
