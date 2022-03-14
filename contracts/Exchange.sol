@@ -123,7 +123,7 @@ contract SteakExchange is Ownable {
     //   "Slippage too high"
     // );
 
-    uint256 amountTokens = msg.value.mul(priceToken()).div(decimalization);
+    uint256 amountTokens = (msg.value * priceToken());
 
     // Calculate new LP "token" amount received based on percent of existing ETH reserves
     uint256 poolContrib = (totalLP * msg.value) / eth_reserves;
@@ -163,7 +163,7 @@ contract SteakExchange is Ownable {
     //   "Slippage too high"
     // );
 
-    uint256 amountTokens = amountETH.mul(priceToken()).div(decimalization);
+    uint256 amountTokens = (amountETH * priceToken());
 
     // Calculate LP "token" amount to cancel based on percent of existing ETH reserves
     uint256 poolContrib = (totalLP * amountETH) / eth_reserves;
