@@ -29,4 +29,3 @@ abstract contract Ownable {
     _; // executes the body of the function at this point (after the require passed)
   }
 }
-

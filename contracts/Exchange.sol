@@ -1,11 +1,11 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.12;
 
-import './interfaces/IERC20.sol';
-import './libraries/Ownable.sol';
-import './SteakToken.sol';
+import "./interfaces/IERC20.sol";
+import "./libraries/Ownable.sol";
+import "./SteakToken.sol";
 
-import 'hardhat/console.sol';
+import "hardhat/console.sol";
 
 /* This exchange is based off of Uniswap V1. The original whitepaper for the constant product rule
  * can be found here:
@@ -58,12 +58,12 @@ contract SteakExchange is Ownable {
    */
   function createPool(uint256 amountTokens) external payable onlyOwner {
     // require pool does not yet exist
-    require(token_reserves == 0, 'Token reserves was not 0');
-    require(eth_reserves == 0, 'ETH reserves was not 0.');
+    require(token_reserves == 0, "Token reserves was not 0");
+    require(eth_reserves == 0, "ETH reserves was not 0.");
 
     // require nonzero values were sent
-    require(msg.value > 0, 'Need ETH to create pool.');
-    require(amountTokens > 0, 'Need tokens to create pool.');
+    require(msg.value > 0, "Need ETH to create pool.");
+    require(amountTokens > 0, "Need tokens to create pool.");
 
     token.transferFrom(msg.sender, address(this), amountTokens);
     eth_reserves = msg.value;
@@ -151,7 +151,7 @@ contract SteakExchange is Ownable {
    */
   function removeLiquidity(uint256 amountETH) public payable {
     // fail if try to remove inexistent LP on "exit all" or another zero ETH call - save gas
-    require(amountETH > 0, 'Nothing to remove');
+    require(amountETH > 0, "Nothing to remove");
 
     // Attempt to reinvest fees BEFORE claim; this will distribute as much of the accrued unassigned fees as possible
     reinvestFees();
@@ -172,7 +172,7 @@ contract SteakExchange is Ownable {
       eth_reserves > amountETH &&
         token_reserves > amountTokens &&
         poolLP[msg.sender] >= poolContrib,
-      'Trying to remove more than max available'
+      "Trying to remove more than max available"
     );
 
     // Keep track of LP "tokens", reserves, and k post changes
@@ -232,7 +232,7 @@ contract SteakExchange is Ownable {
     uint256 amountETH = eth_reserves - newETHReserve;
 
     //  If performing the swap would exhaust total ETH supply, transaction must fail.
-    require(eth_reserves > amountETH, 'This would drain the pool');
+    require(eth_reserves > amountETH, "This would drain the pool");
 
     // Cannot receive less than max exchange slippage permitted - define this on ex fee basis
     // See "DesignDoc" for important discussion of how slippage is implemented - on actual outcome.
@@ -277,7 +277,7 @@ contract SteakExchange is Ownable {
     uint256 amountTokens = token_reserves - newTokenReserve;
 
     //  If performing the swap would exhaust total token supply, transaction must fail.
-    require(token_reserves > amountTokens, 'This would drain the pool');
+    require(token_reserves > amountTokens, "This would drain the pool");
 
     // Cannot receive less than max exchange slippage permitted - define this on ex fee basis
     // See "DesignDoc" for important discussion of how slippage is implemented - on actual outcome.

@@ -1,8 +1,8 @@
-import { ethers } from 'ethers';
-import React from 'react';
-import { useExchange } from '../context/ExchangeContext';
-import Button from './Button';
-import InputField from './InputField';
+import { ethers } from "ethers";
+import React from "react";
+import { useExchange } from "../context/ExchangeContext";
+import Button from "./Button";
+import InputField from "./InputField";
 
 export default function Exchange() {
   const { ethTokenRate, tokenEthRate, steakExchangeContract } = useExchange();
@@ -47,12 +47,12 @@ export default function Exchange() {
 
     if (steakExchangeContract) {
       try {
-        console.log('estimatedPriceForSteak: ', ethTokenRate * amount);
+        console.log("estimatedPriceForSteak: ", ethTokenRate * amount);
         await steakExchangeContract.swapETHForTokens({
           value: ethers.utils.parseUnits(
             (ethTokenRate * amount).toString(),
-            'ether'
-          )
+            "ether"
+          ),
         });
       } catch (err) {
         console.error(err);
@@ -65,7 +65,7 @@ export default function Exchange() {
 
     if (steakExchangeContract) {
       try {
-        console.log('estimatedPriceForETH: ', tokenEthRate * amount);
+        console.log("estimatedPriceForETH: ", tokenEthRate * amount);
         await steakExchangeContract.swapTokensForETH(tokenEthRate * amount);
       } catch (err) {
         console.error(err);
@@ -82,9 +82,9 @@ export default function Exchange() {
           if (
             e.target.value == undefined ||
             e.target.value == null ||
-            e.target.value == ''
+            e.target.value == ""
           ) {
-            setAmount('0');
+            setAmount("0");
             // setEstimatedPriceForSteak('0');
             // setEstimatedPriceForETH('0');
           } else {

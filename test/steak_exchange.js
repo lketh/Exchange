@@ -2,22 +2,21 @@ const { expect } = require("chai");
 const { ethers } = require("hardhat");
 
 describe("SteakExchange", function () {
+  let steak, signer, random_account;
+  const initialSupply = 1000;
   before(async function () {
     // Token for the exchange
-    const Steak = await ethers.getContractFactory("Steak");
-    const steak = await Steak.deploy();
-    await steak.deployed();
-    this.steak = steak;
+    const SteakToken = await ethers.getContractFactory("SteakToken");
+    steakToken = await SteakToken.deploy(initialSupply);
+    await steakToken.deployed();
 
     // Exchange itself
     const SteakExchange = await ethers.getContractFactory("SteakExchange");
-    const steakExchange = await SteakExchange.deploy(steak.address);
+    steakExchange = await SteakExchange.deploy(steakToken.address);
     await steakExchange.deployed();
-    this.steakExchange = steakExchange;
 
     // Signer / Owner
-    const [signer] = await ethers.provider.listAccounts();
-    this.signer = signer;
+    [signer, , random_account] = await ethers.getSigners();
   });
 
   it("Should be able to get ETH price", async function () {
@@ -41,23 +40,26 @@ describe("SteakExchange", function () {
   });
 
   it("Should be able to add liquidity to the pool", async function () {
-    const createPool = await this.steakExchange.createPool(
-      "2000000000000000000",
-      {
-        value: "2000000000000000000",
-      }
-    );
-    createPool.wait();
+    const steakBalance = await steakToken.balanceOf(signer.address);
+    const etherPool = ethers.utils.parseUnits("100", "ether");
+    const lp = await steakExchange.createPool(steakBalance, {
+      value: etherPool,
+    });
+    lp.wait();
 
-    const addLiquidity = await this.steakExchange.addLiquidity(
-      "2000000000000000000",
-      "1000000000000000000"
+    const approve = await steakToken.approve(
+      steakExchange.address,
+      ethers.utils.parseEther("9999999999999999999999999").toString()
     );
-    addLiquidity.wait();
+    approve.wait();
 
-    const currentLiquidity = await this.steakExchange.token_reserves();
-    const currentLiquidity2 = await this.steakExchange.eth_reserves();
-    const currentLiquidity3 = await this.steakExchange.totalLP();
+    await steakExchange.addLiquidity({
+      value: etherPool,
+    });
+
+    const currentLiquidity = await steakExchange.token_reserves();
+    const currentLiquidity2 = await steakExchange.eth_reserves();
+    const currentLiquidity3 = await steakExchange.totalLP();
 
     console.log(currentLiquidity);
     console.log(currentLiquidity2);

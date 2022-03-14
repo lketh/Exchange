@@ -17,6 +17,9 @@ export default function Liquidity() {
     if (steakExchangeContract) {
       try {
         const lpBalance = await steakExchangeContract.poolLP(walletAddress);
+        console.log(
+          `Wallet LP balance: ${ethers.utils.formatEther(lpBalance)}`
+        );
         await steakExchangeContract.removeLiquidity(removeAmount);
       } catch (err) {
         console.log(err);
