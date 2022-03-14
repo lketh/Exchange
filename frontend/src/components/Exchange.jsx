@@ -38,6 +38,11 @@ export default function Exchange() {
 
   return (
     <div className="mt-2">
+      <span>
+        <strong>Eth Given Tokens:</strong>
+        {amount * ethTokenRate}
+      </span>
+      <br />
       <InputField
         placeholder="Trade ETH for STEAK"
         onChange={(e) => {

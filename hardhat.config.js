@@ -30,8 +30,7 @@ module.exports = {
   networks: {
     hardhat: {
       mining: {
-        auto: false,
-        interval: 1000,
+        auto: true,
       },
       mnemonic: "test test test test test test test test test test test test",
     },
