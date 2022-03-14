@@ -37,7 +37,7 @@ export const ExchangeProvider = ({ children }) => {
       setEthLiquidity(await getEthLiquidity());
       setTokenEthRate(await getTokenEthRate());
       setEthTokenRate(await getEthTokenRate());
-      console.log("Finish init");
+      console.log("Finish init steakExchange");
     }
 
     if (walletAddress) {
@@ -90,7 +90,7 @@ export const ExchangeProvider = ({ children }) => {
         ethLiquidity: ethLiquidity,
         tokenEthRate: tokenEthRate,
         ethTokenRate: ethTokenRate,
-        contract: contract,
+        steakExchangeContract: contract,
       }}
     >
       {children}
