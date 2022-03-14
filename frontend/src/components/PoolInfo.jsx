@@ -2,8 +2,13 @@ import React from "react";
 import { useExchange } from "../context/ExchangeContext";
 
 export default function PoolInfo() {
-  const { tokenLiquidity, ethLiquidity, tokenEthRate, ethTokenRate } =
-    useExchange();
+  const {
+    tokenLiquidity,
+    ethLiquidity,
+    tokenEthRate,
+    ethTokenRate,
+    walletLiquidity,
+  } = useExchange();
 
   return (
     <div className="mt-2">
@@ -28,6 +33,10 @@ export default function PoolInfo() {
 
         <span>
           <strong>ethTokenRate:</strong> {ethTokenRate}
+        </span>
+        <br />
+        <span>
+          <strong>Your liquidity:</strong> {walletLiquidity}
         </span>
         <br />
       </div>

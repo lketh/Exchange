@@ -1,18 +1,15 @@
 // SPDX-License-Identifier: MIT
 // OpenZeppelin Contracts v4.4.0 (token/ERC20/ERC20.sol)
 
-pragma solidity ^0.8.0;
+pragma solidity ^0.8.12;
 
 import "../interfaces/IERC20.sol";
-import "../libraries/SomeMath.sol";
 
 /**
  * Simplified implementation of the {IERC20} interface. Read more about IERC20 on
  * the docs at: https://docs.openzeppelin.com/contracts/4.x/api/token/erc20#IERC20
  */
 contract ERC20 is IERC20 {
-  using SomeMath for uint256;
-
   mapping(address => uint256) private _balances;
   mapping(address => mapping(address => uint256)) private _allowances;
 
@@ -229,8 +226,8 @@ contract ERC20 is IERC20 {
     require(_to != address(0), "ERC20: to address is not valid");
     require(_amount > 0, "ERC20: amount is not valid");
 
-    _totalSupply = _totalSupply.add(_amount);
-    _balances[_to] = _balances[_to].add(_amount);
+    _totalSupply = _totalSupply + _amount;
+    _balances[_to] = _balances[_to] + _amount;
 
     emit Mint(_to, _amount);
   }

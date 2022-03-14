@@ -23,7 +23,7 @@ export default function Exchange() {
   async function executeTrade() {
     if (steakExchangeContract) {
       try {
-        await steakExchangeContract.swapETHForTokens(amount, {
+        await steakExchangeContract.swapETHForTokens({
           value: ethers.utils.parseUnits(estimatedPrice.toString(), "ether"),
         });
       } catch (err) {

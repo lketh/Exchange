@@ -1,10 +1,7 @@
 // SPDX-License-Identifier: MIT
 // OpenZeppelin Contracts v4.4.0 (access/Ownable.sol)
 
-// Simplified for educational purposes. To view the full implementation of an ERC20 token, have a look
-// at: https://github.com/OpenZeppelin/openzeppelin-contracts/blob/master/contracts/access/Ownable.sol
-
-pragma solidity ^0.8.0;
+pragma solidity ^0.8.12;
 
 /**
  * A simplified access control mechanism, where an owner is granted exclusive
@@ -15,20 +12,21 @@ pragma solidity ^0.8.0;
  * which can be applied to your functions to restrict their use to just the owner.
  */
 abstract contract Ownable {
-    address private _owner;
+  address private _owner;
 
-    /**
-     * @dev Initializes the contract setting the deployer as the initial owner.
-     */
-    constructor() {
-        _owner = msg.sender;
-    }
+  /**
+   * @dev Initializes the contract setting the deployer as the initial owner.
+   */
+  constructor() {
+    _owner = msg.sender;
+  }
 
-    /**
-     * Throws if called by any account other than the owner.
-     */
-    modifier onlyOwner() {
-        require(_owner == msg.sender, "Ownable: caller is not the owner");
-        _; // executes the body of the function at this point (after the require passed)
-    }
+  /**
+   * Throws if called by any account other than the owner.
+   */
+  modifier onlyOwner() {
+    require(_owner == msg.sender, "Ownable: caller is not the owner");
+    _; // executes the body of the function at this point (after the require passed)
+  }
 }
+

@@ -10,6 +10,7 @@ const initialState = {
   ethLiquidity: 0,
   tokenEthRate: 0,
   ethTokenRate: 0,
+  walletLiquidity: 0,
 };
 
 const ExchangeContext = React.createContext(initialState);
@@ -22,6 +23,7 @@ export const ExchangeProvider = ({ children }) => {
   const [ethLiquidity, setEthLiquidity] = React.useState(0);
   const [tokenEthRate, setTokenEthRate] = React.useState(0);
   const [ethTokenRate, setEthTokenRate] = React.useState(0);
+  const [walletLiquidity, setWalletLiquidity] = React.useState(0);
 
   React.useEffect(() => {
     async function init() {
@@ -37,6 +39,7 @@ export const ExchangeProvider = ({ children }) => {
       setEthLiquidity(await getEthLiquidity());
       setTokenEthRate(await getTokenEthRate());
       setEthTokenRate(await getEthTokenRate());
+      setWalletLiquidity(await getWalletLiquidity());
       console.log("Finish init steakExchange");
     }
 
@@ -82,6 +85,15 @@ export const ExchangeProvider = ({ children }) => {
       }
     }
   }
+  async function getWalletLiquidity() {
+    if (contract && walletAddress) {
+      try {
+        return (await contract.poolLP(walletAddress)).toString();
+      } catch (err) {
+        console.log(err);
+      }
+    }
+  }
 
   return (
     <ExchangeContext.Provider
@@ -91,6 +103,7 @@ export const ExchangeProvider = ({ children }) => {
         tokenEthRate: tokenEthRate,
         ethTokenRate: ethTokenRate,
         steakExchangeContract: contract,
+        walletLiquidity: walletLiquidity,
       }}
     >
       {children}
