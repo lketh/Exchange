@@ -71,12 +71,6 @@ export const ExchangeProvider = ({ children }) => {
     if (contract) {
       try {
         return tokenLiquidity / ethLiquidity;
-        console.log(
-          "tokenLiquidity:",
-          tokenLiquidity,
-          "ethLiquidity:",
-          ethLiquidity
-        );
       } catch (err) {
         console.log(err);
       }
@@ -94,7 +88,9 @@ export const ExchangeProvider = ({ children }) => {
   async function getWalletLiquidity() {
     if (contract && walletAddress) {
       try {
-        return (await contract.poolLP(walletAddress)).toString();
+        return ethers.utils.formatEther(
+          (await contract.poolLP(walletAddress)).toString()
+        );
       } catch (err) {
         console.log(err);
       }

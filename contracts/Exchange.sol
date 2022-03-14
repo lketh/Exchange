@@ -70,9 +70,9 @@ contract SteakExchange is Ownable {
     token_reserves = amountTokens;
     k = eth_reserves * token_reserves;
 
-    uint256 poolContrib = msg.value / eth_reserves;
+    uint256 poolContrib = (msg.value / eth_reserves) * 10;
     poolLP[msg.sender] = poolContrib;
-    totalLP = poolContrib;
+    totalLP = poolContrib * (10**18);
 
     console.log(totalLP);
     console.log(msg.value);
@@ -116,16 +116,10 @@ contract SteakExchange is Ownable {
     // Attempt to reinvest fees BEFORE adding liquidity; this will distribute as much of the accrued unassigned fees as possible to already EXISTING LPs
     reinvestFees();
 
-    // Check the price of token against the min and max exchange rates acceptable; both are decimalized
-    // require(
-    //   priceToken() >= min_exchange_rate && priceToken() <= max_exchange_rate,
-    //   "Slippage too high"
-    // );
-
     uint256 amountTokens = (msg.value * priceToken());
 
     // Calculate new LP "token" amount received based on percent of existing ETH reserves
-    uint256 poolContrib = (totalLP * msg.value) / eth_reserves;
+    uint256 poolContrib = ((totalLP * msg.value) / eth_reserves) * 10;
     poolLP[msg.sender] = poolLP[msg.sender] + poolContrib;
     totalLP = totalLP + poolContrib;
 
@@ -156,16 +150,10 @@ contract SteakExchange is Ownable {
     // Attempt to reinvest fees BEFORE claim; this will distribute as much of the accrued unassigned fees as possible
     reinvestFees();
 
-    // Check the price of token against the min and max exchange rates acceptable; both are decimalized
-    // require(
-    //   priceToken() >= min_exchange_rate && priceToken() <= max_exchange_rate,
-    //   "Slippage too high"
-    // );
-
     uint256 amountTokens = (amountETH * priceToken());
 
     // Calculate LP "token" amount to cancel based on percent of existing ETH reserves
-    uint256 poolContrib = (totalLP * amountETH) / eth_reserves;
+    uint256 poolContrib = ((totalLP * amountETH) / eth_reserves) * 10;
 
     // require remaining ETH and token in the pool and sufficient LP claim to withdraw desired ETH
     require(
@@ -207,7 +195,7 @@ contract SteakExchange is Ownable {
     reinvestFees();
 
     // Can withdraw as much of the pool ETH total as the ratio of LP "tokens" owned
-    removeLiquidity((eth_reserves * poolLP[msg.sender]) / totalLP);
+    removeLiquidity(((eth_reserves * poolLP[msg.sender]) / totalLP) / 10);
   }
 
   /* ========================= Swap Functions =========================  */
@@ -233,13 +221,6 @@ contract SteakExchange is Ownable {
 
     //  If performing the swap would exhaust total ETH supply, transaction must fail.
     require(eth_reserves > amountETH, "This would drain the pool");
-
-    // Cannot receive less than max exchange slippage permitted - define this on ex fee basis
-    // See "DesignDoc" for important discussion of how slippage is implemented - on actual outcome.
-    // require(
-    //   amountETH >= max_exchange_rate.mul(amountTokensExFee).div(decimalization),
-    //   "Slippage too high"
-    // );
 
     eth_reserves = newETHReserve;
     token_reserves = newTokenReserve;
@@ -278,13 +259,6 @@ contract SteakExchange is Ownable {
 
     //  If performing the swap would exhaust total token supply, transaction must fail.
     require(token_reserves > amountTokens, "This would drain the pool");
-
-    // Cannot receive less than max exchange slippage permitted - define this on ex fee basis
-    // See "DesignDoc" for important discussion of how slippage is implemented - on actual outcome.
-    // require(
-    //   amountTokens >= max_exchange_rate.mul(amountETH).div(decimalization),
-    //   "Slippage too high"
-    // );
 
     eth_reserves = newETHReserve;
     token_reserves = newTokenReserve;

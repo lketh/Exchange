@@ -100,7 +100,7 @@ export default function Liquidity() {
           ) {
             setRemoveAmount("0");
           } else {
-            setRemoveAmount(e.target.value.toString());
+            setRemoveAmount(ethers.utils.parseEther(e.target.value.toString()));
           }
         }}
       />

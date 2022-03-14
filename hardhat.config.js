@@ -33,6 +33,7 @@ module.exports = {
         auto: false,
         interval: 1000,
       },
+      mnemonic: "test test test test test test test test test test test test",
     },
     ropsten: {
       url: process.env.ROPSTEN_URL || "",
