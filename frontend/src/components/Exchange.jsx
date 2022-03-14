@@ -5,12 +5,12 @@ import Button from "./Button";
 import InputField from "./InputField";
 
 export default function Exchange() {
-  const { ethTokenRate, contract } = useExchange();
+  const { ethTokenRate, steakExchangeContract } = useExchange();
   const [amount, setAmount] = React.useState(0);
   const [estimatedPrice, setEstimatedPrice] = React.useState("0");
 
   async function getEstimatedPrice() {
-    if (contract) {
+    if (steakExchangeContract) {
       try {
         const minTokenPriceInEth = ethTokenRate * amount * 10;
         setEstimatedPrice(minTokenPriceInEth);
@@ -21,9 +21,9 @@ export default function Exchange() {
   }
 
   async function executeTrade() {
-    if (contract) {
+    if (steakExchangeContract) {
       try {
-        await contract.swapETHForTokens(amount, {
+        await steakExchangeContract.swapETHForTokens(amount, {
           value: ethers.utils.parseUnits(estimatedPrice.toString(), "ether"),
         });
       } catch (err) {
@@ -40,9 +40,9 @@ export default function Exchange() {
           setAmount(e.target.value.toString());
           console.log(e.target.value);
           if (
-            e.target.value == undefined ||
-            e.target.value == null ||
-            e.target.value == ""
+            e.target.value === undefined ||
+            e.target.value === null ||
+            e.target.value === ""
           ) {
             setEstimatedPrice("0");
           } else {

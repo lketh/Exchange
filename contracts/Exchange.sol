@@ -101,18 +101,9 @@ contract SteakExchange is Ownable {
    * new constant product k, and then Emit an AddLiquidity event.
    *
    */
-  function addLiquidity(uint256 max_exchange_rate, uint256 min_exchange_rate)
-    external
-    payable
-  {
+  function addLiquidity() external payable {
     // Attempt to reinvest fees BEFORE adding liquidity; this will distribute as much of the accrued unassigned fees as possible to already EXISTING LPs
     reinvestFees();
-
-    // Check the price of token against the min and max exchange rates acceptable; both are decimalized
-    require(
-      priceToken() >= min_exchange_rate && priceToken() <= max_exchange_rate,
-      "Slippage too high"
-    );
 
     uint256 amountTokens = msg.value.mul(priceToken()).div(decimalization);
 
@@ -141,22 +132,12 @@ contract SteakExchange is Ownable {
    * successful transaction should update the state of the contract, including the new constant
    * product k, transfer the ETH and Token to the sender and then Emit an RemoveLiquidity event.
    */
-  function removeLiquidity(
-    uint256 amountETH,
-    uint256 max_exchange_rate,
-    uint256 min_exchange_rate
-  ) public payable {
+  function removeLiquidity(uint256 amountETH) public payable {
     // fail if try to remove inexistent LP on "exit all" or another zero ETH call - save gas
     require(amountETH > 0, "Nothing to remove");
 
     // Attempt to reinvest fees BEFORE claim; this will distribute as much of the accrued unassigned fees as possible
     reinvestFees();
-
-    // Check the price of token against the min and max exchange rates acceptable; both are decimalized
-    require(
-      priceToken() >= min_exchange_rate && priceToken() <= max_exchange_rate,
-      "Slippage too high"
-    );
 
     uint256 amountTokens = amountETH.mul(priceToken()).div(decimalization);
 
@@ -192,10 +173,7 @@ contract SteakExchange is Ownable {
    * calls removeLiquidity() to remove that amount of liquidity from the pool.
    *
    */
-  function removeAllLiquidity(
-    uint256 max_exchange_rate,
-    uint256 min_exchange_rate
-  ) public payable {
+  function removeAllLiquidity() public payable {
     // Can't remove all liquidity
     require(
       totalLP > poolLP[msg.sender],
@@ -206,11 +184,7 @@ contract SteakExchange is Ownable {
     reinvestFees();
 
     // Can withdraw as much of the pool ETH total as the ratio of LP "tokens" owned
-    removeLiquidity(
-      eth_reserves.mul(poolLP[msg.sender]).div(totalLP),
-      max_exchange_rate,
-      min_exchange_rate
-    );
+    removeLiquidity(eth_reserves.mul(poolLP[msg.sender]).div(totalLP));
   }
 
   /* ========================= Swap Functions =========================  */
