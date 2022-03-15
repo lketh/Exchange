@@ -2,42 +2,18 @@
 @tailwind components;
 @tailwind utilities;
 
-html,
-body {
-  padding: 0;
-  margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Oxygen,
-    Ubuntu, Cantarell, Fira Sans, Droid Sans, Helvetica Neue, sans-serif;
-}
-code {
-  font-family: source-code-pro, Menlo, Monaco, Consolas, "Courier New",
-    monospace;
+.btn {
+    @apply py-2 px-4 rounded;
 }
 
-a {
-  color: inherit;
-  text-decoration: none;
+.btn-blue {
+    @apply bg-blue-500 text-white;
 }
 
-* {
-  box-sizing: border-box;
-}
-.main {
-  display: flex;
-  width: 100%;
-  justify-content: center;
+.btn-blue:hover {
+    @apply bg-blue-700;
 }
 
-.container {
-  display: grid;
-  grid-template-rows: auto 1fr auto;
-  height: 100vh;
-  margin: auto;
-  width: 100%;
-  max-width: 800px;
-  text-align: center;
-}
-
-.mt-2 {
-  margin-top: 2rem;
+.card {
+    @apply rounded overflow-hidden shadow-lg;
 }

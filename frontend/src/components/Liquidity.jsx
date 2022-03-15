@@ -71,42 +71,54 @@ export default function Liquidity() {
   }
 
   return (
-    <div className="mt-2">
-      <InputField
-        placeholder="Add liquidity in eth (match it with steak)"
-        onChange={(e) => {
-          if (
-            e.target.value === undefined ||
-            e.target.value === null ||
-            e.target.value === ""
-          ) {
-            setAddAmount("0");
-          } else {
-            setAddAmount(e.target.value.toString());
-          }
-        }}
-      />
-      <br />
-      <Button onClick={() => addLiquidity()}>Add Liquidity</Button>
-      <br />
-      <br />
-      <InputField
-        placeholder="Remove liquidity"
-        onChange={(e) => {
-          if (
-            e.target.value === undefined ||
-            e.target.value === null ||
-            e.target.value === ""
-          ) {
-            setRemoveAmount("0");
-          } else {
-            setRemoveAmount(ethers.utils.parseEther(e.target.value.toString()));
-          }
-        }}
-      />
-      <br />
-      <Button onClick={() => removeLiquidity()}>Remove Liquidity</Button>
-      <Button onClick={() => removeAllLiquidity()}>Remove all liquidity</Button>
+    <div>
+      <label className="block">
+        <span className="block text-sm font-medium text-slate-700">
+          Add Liquidity
+        </span>
+        <InputField
+          placeholder="Add liquidity in eth (match it with steak)"
+          onChange={(e) => {
+            if (
+              e.target.value === undefined ||
+              e.target.value === null ||
+              e.target.value === ""
+            ) {
+              setAddAmount("0");
+            } else {
+              setAddAmount(e.target.value.toString());
+            }
+          }}
+        />
+        <br />
+        <Button onClick={() => addLiquidity()}>Add Liquidity</Button>
+        <br />
+        <br />
+        <span className="block text-sm font-medium text-slate-700">
+          Remove Liquidity
+        </span>
+        <InputField
+          placeholder="Remove liquidity"
+          onChange={(e) => {
+            if (
+              e.target.value === undefined ||
+              e.target.value === null ||
+              e.target.value === ""
+            ) {
+              setRemoveAmount("0");
+            } else {
+              setRemoveAmount(
+                ethers.utils.parseEther(e.target.value.toString())
+              );
+            }
+          }}
+        />
+        <br />
+        <Button onClick={() => removeLiquidity()}>Remove Liquidity</Button>
+        <Button onClick={() => removeAllLiquidity()}>
+          Remove all liquidity
+        </Button>
+      </label>
     </div>
   );
 }

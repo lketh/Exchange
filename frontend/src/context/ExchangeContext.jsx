@@ -52,7 +52,11 @@ export const ExchangeProvider = ({ children }) => {
     if (contract) {
       try {
         const liquidity = (await contract.token_reserves()) * 10 ** -18;
-        return liquidity.toFixed(3);
+        if (typeof liquidity === "number") {
+          return liquidity.toFixed(3);
+        } else {
+          return liquidity;
+        }
       } catch (err) {
         console.log(err);
       }
@@ -61,7 +65,12 @@ export const ExchangeProvider = ({ children }) => {
   async function getEthLiquidity() {
     if (contract) {
       try {
-        return ((await contract.eth_reserves()) * 10 ** -18).toFixed(3);
+        const ethLiquidity = (await contract.eth_reserves()) * 10 ** -18;
+        if (typeof ethLiquidity === "number") {
+          return ethLiquidity.toFixed(3);
+        } else {
+          return ethLiquidity;
+        }
       } catch (err) {
         console.log(err);
       }
@@ -70,7 +79,12 @@ export const ExchangeProvider = ({ children }) => {
   async function getTokenEthRate() {
     if (contract) {
       try {
-        return (tokenLiquidity / ethLiquidity).toFixed(3);
+        const tokenEthRate = tokenLiquidity / ethLiquidity;
+        if (typeof tokenEthRate === "number") {
+          return tokenEthRate.toFixed(3);
+        } else {
+          return tokenEthRate;
+        }
       } catch (err) {
         console.log(err);
       }
@@ -79,7 +93,12 @@ export const ExchangeProvider = ({ children }) => {
   async function getEthTokenRate() {
     if (contract) {
       try {
-        return (ethLiquidity / tokenLiquidity).toFixed(3);
+        const ethTokenRate = (ethLiquidity / tokenLiquidity).toFixed(3);
+        if (typeof ethTokenRate === "number") {
+          return ethTokenRate.toFixed(3);
+        } else {
+          return ethTokenRate;
+        }
       } catch (err) {
         console.log(err);
       }
@@ -88,9 +107,14 @@ export const ExchangeProvider = ({ children }) => {
   async function getWalletLiquidity() {
     if (contract && walletAddress) {
       try {
-        return ethers.utils
-          .formatEther((await contract.poolLP(walletAddress)).toString())
-          .toFixed(3);
+        const walletLiquidity = ethers.utils.formatEther(
+          (await contract.poolLP(walletAddress)).toString()
+        );
+        if (typeof walletLiquidity === "number") {
+          return walletLiquidity.toFixed(3);
+        } else {
+          return walletLiquidity;
+        }
       } catch (err) {
         console.log(err);
       }

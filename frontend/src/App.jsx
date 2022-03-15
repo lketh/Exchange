@@ -9,22 +9,28 @@ import PoolInfo from "./components/PoolInfo";
 
 function App() {
   return (
-    <div className="main">
-      <WalletProvider>
-        <div className="container">
+    <div className="grid grid-cols-6">
+      <div className="col-start-2 col-span-4">
+        <WalletProvider>
           <Navbar />
           <div>
             <ExchangeProvider>
               <SteakProvider>
                 <PoolInfo />
-                <Exchange />
-                <Liquidity />
+                <div className="flex justify-evenly">
+                  <div className="">
+                    <Exchange />
+                  </div>
+                  <div className="">
+                    <Liquidity />
+                  </div>
+                </div>
               </SteakProvider>
             </ExchangeProvider>
           </div>
           <Footer />
-        </div>
-      </WalletProvider>
+        </WalletProvider>
+      </div>
     </div>
   );
 }

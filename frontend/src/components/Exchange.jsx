@@ -57,31 +57,33 @@ export default function Exchange() {
 
   return (
     <div className="mt-2">
-      <span>
-        <strong>Eth Given Tokens:</strong>
+      <label className="block">
+        <span className="block text-sm font-medium text-slate-700">
+          Estimated amount in ether:
+        </span>
         {amount * ethTokenRate}
-      </span>
-      <br />
-      <InputField
-        placeholder="Trade ETH for STEAK"
-        onChange={(e) => {
-          setAmount(e.target.value);
-          if (
-            e.target.value == undefined ||
-            e.target.value == null ||
-            e.target.value == ""
-          ) {
-            setAmount("0");
-          } else {
+        <span className="block text-sm font-medium text-slate-700">
+          Amount in steak
+        </span>
+        <InputField
+          placeholder="$STEAK"
+          onChange={(e) => {
             setAmount(e.target.value);
-          }
-        }}
-      />
-      <br />
-      <Button onClick={() => executeBuySteak()}>Trade ETH to STEAK</Button>
-      <br />
-      <br />
-      <Button onClick={() => executeBuyETH()}>Trade STEAK to ETH</Button>
+            if (
+              e.target.value === undefined ||
+              e.target.value === null ||
+              e.target.value === ""
+            ) {
+              setAmount("0");
+            } else {
+              setAmount(e.target.value);
+            }
+          }}
+        />
+        <br />
+        <Button onClick={() => executeBuySteak()}>Trade ETH to STEAK</Button>
+        <Button onClick={() => executeBuyETH()}>Trade STEAK to ETH</Button>
+      </label>
     </div>
   );
 }
