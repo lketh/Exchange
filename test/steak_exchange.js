@@ -5,26 +5,55 @@ describe("SteakExchange", function () {
   let steak, signer, random_account;
   const initialSupply = 1000;
   before(async function () {
-    // Token for the exchange
+    // deploy SteakToken with initialSupply of 1000
     const SteakToken = await ethers.getContractFactory("SteakToken");
     steakToken = await SteakToken.deploy(initialSupply);
     await steakToken.deployed();
 
-    // Exchange itself
+    // deploy Exchange
     const SteakExchange = await ethers.getContractFactory("SteakExchange");
     steakExchange = await SteakExchange.deploy(steakToken.address);
     await steakExchange.deployed();
 
     // Signer / Owner
     [signer, , random_account] = await ethers.getSigners();
+
+    console.log(
+      parseInt(ethers.utils.formatEther(await steakExchange.eth_reserves()))
+    );
+    console.log(
+      parseInt(ethers.utils.formatEther(await steakExchange.token_reserves()))
+    );
+  });
+
+  it("create and initialize the pool", async function () {
+    const steakBalance = await steakToken.balanceOf(signer);
+
+    const approveTxn = await steakToken.approve(
+      steakToken.address,
+      steakBalance
+    );
+    approveTxn.wait();
+
+    const approveExchange = await steakToken.approve(
+      steakExchange.address,
+      steakBalance
+    );
+    approveExchange.wait();
+
+    const etherPool = hre.ethers.utils.parseUnits("100", "ether");
+    const lp = await steakExchange.createPool(steakBalance, {
+      value: etherPool
+    });
+    lp.wait();
   });
 
   it("Should be able to get ETH price", async function () {
-    expect(true);
+    console.log(await steakExchange.priceETH());
   });
 
   it("Should be able to get Steak price", async function () {
-    expect(true);
+    console.log(await steakExchange.priceToken());
   });
 
   it("Should be able to create the LP pool for ETH-STEAK", async function () {
@@ -43,7 +72,7 @@ describe("SteakExchange", function () {
     const steakBalance = await steakToken.balanceOf(signer.address);
     const etherPool = ethers.utils.parseUnits("100", "ether");
     const lp = await steakExchange.createPool(steakBalance, {
-      value: etherPool,
+      value: etherPool
     });
     lp.wait();
 
@@ -54,7 +83,7 @@ describe("SteakExchange", function () {
     approve.wait();
 
     await steakExchange.addLiquidity({
-      value: etherPool,
+      value: etherPool
     });
 
     const currentLiquidity = await steakExchange.token_reserves();
