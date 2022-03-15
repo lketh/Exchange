@@ -52,7 +52,7 @@ export const ExchangeProvider = ({ children }) => {
     if (contract) {
       try {
         const liquidity = (await contract.token_reserves()) * 10 ** -18;
-        return liquidity;
+        return liquidity.toFixed(3);
       } catch (err) {
         console.log(err);
       }
@@ -61,7 +61,7 @@ export const ExchangeProvider = ({ children }) => {
   async function getEthLiquidity() {
     if (contract) {
       try {
-        return (await contract.eth_reserves()) * 10 ** -18;
+        return ((await contract.eth_reserves()) * 10 ** -18).toFixed(3);
       } catch (err) {
         console.log(err);
       }
@@ -70,7 +70,7 @@ export const ExchangeProvider = ({ children }) => {
   async function getTokenEthRate() {
     if (contract) {
       try {
-        return tokenLiquidity / ethLiquidity;
+        return (tokenLiquidity / ethLiquidity).toFixed(3);
       } catch (err) {
         console.log(err);
       }
@@ -79,7 +79,7 @@ export const ExchangeProvider = ({ children }) => {
   async function getEthTokenRate() {
     if (contract) {
       try {
-        return ethLiquidity / tokenLiquidity;
+        return (ethLiquidity / tokenLiquidity).toFixed(3);
       } catch (err) {
         console.log(err);
       }
@@ -88,9 +88,9 @@ export const ExchangeProvider = ({ children }) => {
   async function getWalletLiquidity() {
     if (contract && walletAddress) {
       try {
-        return ethers.utils.formatEther(
-          (await contract.poolLP(walletAddress)).toString()
-        );
+        return ethers.utils
+          .formatEther((await contract.poolLP(walletAddress)).toString())
+          .toFixed(3);
       } catch (err) {
         console.log(err);
       }

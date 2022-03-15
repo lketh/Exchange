@@ -1,12 +1,17 @@
 import { ethers } from "ethers";
 import React from "react";
 import { useExchange } from "../context/ExchangeContext";
+import { useWallet } from "../context/WalletContext";
+import { useSteak } from "../context/SteakContext";
 import Button from "./Button";
 import InputField from "./InputField";
 
 export default function Exchange() {
   const { ethTokenRate, steakExchangeContract } = useExchange();
   const [amount, setAmount] = React.useState(0);
+
+  const { steakContract } = useSteak();
+  const { walletAddress } = useWallet();
 
   async function executeBuySteak() {
     if (steakExchangeContract) {
@@ -27,6 +32,20 @@ export default function Exchange() {
   async function executeBuyETH() {
     if (steakExchangeContract) {
       try {
+        const allowance = await steakContract.allowance(
+          walletAddress,
+          steakExchangeContract.address
+        );
+
+        if (!(allowance > 0)) {
+          // TODO: approve only the amount of STEAK needed
+          const approve = await steakContract.approve(
+            steakExchangeContract.address,
+            ethers.utils.parseEther("9999999999999999999999999").toString()
+          );
+          approve.wait();
+        }
+
         await steakExchangeContract.swapTokensForETH(
           ethers.utils.parseEther(amount.toString()).toString()
         );
