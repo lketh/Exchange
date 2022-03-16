@@ -16,14 +16,12 @@ describe("Steak", function () {
       // Signer / owner
       [signer, , randomAccount] = await ethers.getSigners();
 
+      // Initial balance
       initialBalance = await steak.balanceOf(signer.address);
     });
 
     it("should have balance equal to initialSupply", async function () {
       // Check total supply
-
-      console.log("initialBalance: ", ethers.utils.formatEther(initialBalance));
-      console.log("initialSupply: ", ethers.utils.formatEther(initialSupply));
       expect(initialBalance).to.equal(initialSupply);
     });
 
@@ -35,13 +33,10 @@ describe("Steak", function () {
       );
       await mintTxn.wait();
 
-      // Check total supply increment by 1 by the mint
+      // Check the balance after minting 1 token
       const finalBalance = await steak.balanceOf(signer.address);
 
-      console.log("initialBalance: ", ethers.utils.formatEther(initialBalance));
-      console.log("finalBalance: ", ethers.utils.formatEther(finalBalance));
-
-      // TODO: should fix mint failure
+      // checks if finalBalance == initialSupply + 1
       expect(finalBalance).to.equal(
         initialSupply.add(ethers.utils.parseEther("1"))
       );
@@ -63,26 +58,24 @@ describe("Steak", function () {
     });
 
     it("Should have balance equal to initialSupply", async () => {
-      console.log("initialBalance: ", ethers.utils.formatEther(initialBalance));
-      console.log("initialSupply: ", ethers.utils.formatEther(initialSupply));
-
       // Check total supply
       expect(initialBalance).to.equal(initialSupply);
     });
 
     it("Should not be able to mint tokens", async function () {
-      // Mint
+      // Checks if it reverts minting token with another account
       await expect(
-        steak.connect(randomAccount).mint(randomAccount.address, 1)
+        steak
+          .connect(randomAccount)
+          .mint(randomAccount.address, ethers.utils.parseEther("1"))
       ).to.be.revertedWith("Ownable: caller is not the owner");
     });
 
     it("Should have balance equal to initialBalance", async () => {
-      // Check total supply was not incremented
+      // balance after trying to mint token
       const finalBalance = await steak.balanceOf(signer.address);
 
-      console.log("initialBalance: ", ethers.utils.formatEther(initialBalance));
-      console.log("finalBalance: ", ethers.utils.formatEther(finalBalance));
+      // checks if initial balance equals to final balance
       expect(initialBalance).to.equal(finalBalance);
     });
   });
