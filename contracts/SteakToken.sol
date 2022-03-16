@@ -3,21 +3,24 @@ pragma solidity ^0.8.12;
 
 import "./libraries/ERC20.sol";
 import "./libraries/Ownable.sol";
+import "hardhat/console.sol";
 
 contract SteakToken is Ownable, ERC20 {
   bool enabled = true;
 
   constructor(uint256 _initialSupply) ERC20("SteakToken", "STEAK") {
-    uint256 initialSupply = _initialSupply * (10**18);
-    _mint(msg.sender, initialSupply);
+    // uint256 initialSupply = _initialSupply * (10**18);
+    _mint(msg.sender, _initialSupply);
   }
 
   /**
    * Creates `amount` tokens, increasing the total supply.
    */
   function mint(address _to, uint256 _amount) public onlyOwner {
+    console.logUint(balanceOf(_to));
     require(enabled, "The contract is paused");
     _mint(_to, _amount);
+    console.logUint(balanceOf(_to));
   }
 
   /*
