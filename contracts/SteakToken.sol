@@ -17,10 +17,8 @@ contract SteakToken is Ownable, ERC20 {
    * Creates `amount` tokens, increasing the total supply.
    */
   function mint(address _to, uint256 _amount) public onlyOwner {
-    console.logUint(balanceOf(_to));
     require(enabled, "The contract is paused");
     _mint(_to, _amount);
-    console.logUint(balanceOf(_to));
   }
 
   /*
