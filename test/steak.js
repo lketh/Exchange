@@ -3,10 +3,10 @@ const { waffle, ethers } = require("hardhat");
 
 describe("Steak", function () {
   let steak, signer, randomAccount;
-  const initialSupply = ethers.BigNumber.from("1000000000000000000");
+  const initialSupply = ethers.utils.parseEther("1000");
   let initialBalance;
 
-  describe("after signing with signer account of the contract", async () => {
+  describe("After signing with signer account of the contract", async () => {
     before(async function () {
       // Token for the exchange
       const Steak = await ethers.getContractFactory("SteakToken");
@@ -15,61 +15,57 @@ describe("Steak", function () {
 
       // Signer / owner
       [signer, , randomAccount] = await ethers.getSigners();
+
+      initialBalance = await steak.balanceOf(signer.address);
     });
 
     it("should have balance equal to initialSupply", async function () {
       // Check total supply
-      const initialBalance = await steak.balanceOf(signer.address);
 
-      console.log("initialBalance: ", initialBalance.toString());
-      console.log("initialSupply: ", initialSupply.toString());
+      console.log("initialBalance: ", ethers.utils.formatEther(initialBalance));
+      console.log("initialSupply: ", ethers.utils.formatEther(initialSupply));
       expect(initialBalance).to.equal(initialSupply);
     });
 
-    it("mint 1 token", async () => {});
-
-    it("should have balance equal to initialSupply + 1", async () => {
+    it("should have balance equal to (initialSupply + 1) after minting 1 token", async () => {
       // Mint
-      const mintTxn = await steak.mint(signer.address, 1);
+      const mintTxn = await steak.mint(
+        signer.address,
+        ethers.utils.parseEther("1")
+      );
       await mintTxn.wait();
 
       // Check total supply increment by 1 by the mint
       const finalBalance = await steak.balanceOf(signer.address);
 
-      console.log("initialSupply: ", initialSupply.toString());
-      console.log("finalBalance: ", finalBalance.toString());
+      console.log("initialBalance: ", ethers.utils.formatEther(initialBalance));
+      console.log("finalBalance: ", ethers.utils.formatEther(finalBalance));
 
       // TODO: should fix mint failure
       expect(finalBalance).to.equal(
-        initialSupply.add(ethers.BigNumber.from("1"))
+        initialSupply.add(ethers.utils.parseEther("1"))
       );
-
-      // this should pass than the one above
-      // expect(parseInt(finalBalance)).to.not.equal(initialSupply + 1);
     });
-
-    const finalBalance = ethers.utils.formatEther(
-      await steak.balanceOf(signer.address)
-    );
-    console.log("finalBalance: ", finalBalance);
   });
 
-  describe("after signing with different account", () => {
+  describe("After signing with different account", () => {
     before(async function () {
-      // Signer / owner
-      [signer, randomAccount] = await ethers.getSigners();
-
       // Token for the exchange
       const Steak = await ethers.getContractFactory("SteakToken");
-      steak = await Steak.deploy(ethers.BigNumber.from("1000000000000000000"));
+      steak = await Steak.deploy(initialSupply);
       await steak.deployed();
 
+      // Signer / owner
+      [signer, , randomAccount] = await ethers.getSigners();
+
+      // initialBalance
       initialBalance = await steak.balanceOf(signer.address);
     });
 
     it("Should have balance equal to initialSupply", async () => {
-      console.log("initialBalance: ", initialBalance.toString());
-      console.log("initialSupply: ", initialSupply.toString());
+      console.log("initialBalance: ", ethers.utils.formatEther(initialBalance));
+      console.log("initialSupply: ", ethers.utils.formatEther(initialSupply));
+
       // Check total supply
       expect(initialBalance).to.equal(initialSupply);
     });
@@ -85,8 +81,8 @@ describe("Steak", function () {
       // Check total supply was not incremented
       const finalBalance = await steak.balanceOf(signer.address);
 
-      console.log("initialBalance: ", initialBalance.toString());
-      console.log("finalBalance: ", finalBalance.toString());
+      console.log("initialBalance: ", ethers.utils.formatEther(initialBalance));
+      console.log("finalBalance: ", ethers.utils.formatEther(finalBalance));
       expect(initialBalance).to.equal(finalBalance);
     });
   });
