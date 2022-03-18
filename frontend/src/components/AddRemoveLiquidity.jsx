@@ -86,12 +86,15 @@ export default function AddRemoveLiquidity() {
 
   return (
     <div className="grid grid-cols-1">
-      <div className="mb-6">
+      <div className="mb-6 font-mono text-sm">
         <h3>Your current LP positio (hardcoded rn)</h3>
-        <div className="my-4 text-3xl text-center"> 24 ETH + 1000 STEAK </div>
+        <div className="my-4 text-3xl text-center font-mono">
+          {" "}
+          24 ETH + 1000 STEAK{" "}
+        </div>
         {/* <div>WalletLiquidity: {walletLiquidity} </div> */}
       </div>
-      <div className="mb-6">
+      <div className="mb-6 font-mono text-sm">
         Add liquidity
         <input
           className="bg-gray-200 appearance-none mb-4 border-2 border-gray-200 rounded w-full py-4 px-4 text-gray-700 leading-tight focus:outline-none focus:bg-white focus:border-purple-500"
@@ -108,16 +111,15 @@ export default function AddRemoveLiquidity() {
             }
           }}
         />
-        <br />
         <button
-          className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+          className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded w-full"
           onClick={() => addLiquidity()}
         >
           Add Liquidity
         </button>
       </div>
 
-      <div>
+      <div className="font-mono text-sm">
         Remove liquidity
         <input
           className="bg-gray-200 appearance-none mb-4 border-2 border-gray-200 rounded w-full py-4 px-4 text-gray-700 leading-tight focus:outline-none focus:bg-white focus:border-purple-500"
@@ -136,7 +138,7 @@ export default function AddRemoveLiquidity() {
             }
           }}
         />
-        <div className="flex space-x-2 mb-4">
+        <div className="flex space-x-2 mb-4 justify-center">
           <button
             className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
             onClick={() => removeLiquidity()}

@@ -24,7 +24,7 @@ export default function Navbar() {
         </div>
         <div className="w-1/3 px-2 flex items-center justify-end">
           {walletAddress ? (
-            <div className="font-sans text-base ">
+            <div className="font-mono text-base ">
               {getTruncatedAddress(walletAddress)}
             </div>
           ) : (
