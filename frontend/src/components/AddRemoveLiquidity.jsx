@@ -87,10 +87,9 @@ export default function AddRemoveLiquidity() {
   return (
     <div className="grid grid-cols-1">
       <div className="mb-6 font-mono text-sm">
-        <h3>Your current LP positio (hardcoded rn)</h3>
+        <h3>Your current LP position (hardcoded rn)</h3>
         <div className="my-4 text-3xl text-center font-mono">
-          {" "}
-          24 ETH + 1000 STEAK{" "}
+          24 ETH + 1000 STEAK
         </div>
         {/* <div>WalletLiquidity: {walletLiquidity} </div> */}
       </div>
