@@ -3,14 +3,12 @@ import React from "react";
 import { useExchange } from "../context/ExchangeContext";
 import { useWallet } from "../context/WalletContext";
 import { useSteak } from "../context/SteakContext";
-import Button from "./Button";
 
 export default function AddRemoveLiquidity() {
   const { steakExchangeContract } = useExchange();
   const { steakContract } = useSteak();
   const [addAmount, setAddAmount] = React.useState(0);
   const [removeAmount, setRemoveAmount] = React.useState(0);
-
   const [totalLP, setTotalLP] = React.useState(0);
   const { walletAddress } = useWallet();
 
@@ -51,7 +49,6 @@ export default function AddRemoveLiquidity() {
         const totallpBalance = await steakExchangeContract.totalLP();
         setTotalLP(totallpBalance);
         console.log("totalLP: ", ethers.utils.formatEther(totalLP));
-        // setTotalLP(totallpBalance);
       } catch (err) {
         console.log(err);
       }
@@ -86,7 +83,7 @@ export default function AddRemoveLiquidity() {
 
   return (
     <div className="grid grid-cols-1">
-      <div className="mb-6 font-mono text-sm">
+      <div className="mb-6 font-mono text-sm mt-2">
         <h3>Your current LP position (hardcoded rn)</h3>
         <div className="my-4 text-3xl text-center font-mono">
           24 ETH + 1000 STEAK
@@ -96,7 +93,7 @@ export default function AddRemoveLiquidity() {
       <div className="mb-6 font-mono text-sm">
         Add liquidity
         <input
-          className="bg-gray-200 appearance-none mb-4 border-2 border-gray-200 rounded w-full py-4 px-4 text-gray-700 leading-tight focus:outline-none focus:bg-white focus:border-purple-500"
+          className="bg-gray-200 appearance-none mb-4 border-2 border-gray-200 rounded w-full py-4 px-4 text-gray-700 leading-tight focus:outline-none focus:bg-white focus:border-blue-500 text-2xl"
           placeholder="$ETH (matching steak)"
           onChange={(e) => {
             if (
@@ -118,10 +115,10 @@ export default function AddRemoveLiquidity() {
         </button>
       </div>
 
-      <div className="font-mono text-sm">
+      <div className="font-mono text-sm mt-8">
         Remove liquidity
         <input
-          className="bg-gray-200 appearance-none mb-4 border-2 border-gray-200 rounded w-full py-4 px-4 text-gray-700 leading-tight focus:outline-none focus:bg-white focus:border-purple-500"
+          className="bg-gray-200 appearance-none mb-4 border-2 border-gray-200 rounded w-full py-4 px-4 text-gray-700 leading-tight focus:outline-none focus:bg-white focus:border-blue-500 text-2xl"
           placeholder="$ETH"
           onChange={(e) => {
             if (

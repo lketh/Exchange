@@ -57,10 +57,10 @@ export default function Swap() {
 
   return (
     <div className="grid grid-cols-1">
-      <div id="buyToken" className="mb-5 font-mono text-sm">
+      <div id="buyToken" className="mb-5 font-mono text-sm mt-2">
         From ETH to Steak
         <input
-          className="bg-gray-200 appearance-none border-2 border-gray-200 rounded w-full py-4 px-4 text-gray-700 leading-tight focus:outline-none focus:bg-white focus:border-blue-500"
+          className="bg-gray-200 appearance-none border-2 border-gray-200 rounded w-full py-4 px-4 text-gray-700 leading-tight focus:outline-none focus:bg-white focus:border-blue-500 text-2xl"
           placeholder="$STEAK"
           onChange={(e) => {
             if (
@@ -88,7 +88,7 @@ export default function Swap() {
       <div id="buyETH" className="mb-3 mt-8 font-mono text-sm">
         From Steak to ETH
         <input
-          className="bg-gray-200 appearance-none border-2 border-gray-200 rounded w-full py-4 px-4 text-gray-700 leading-tight focus:outline-none focus:bg-white focus:border-blue-500"
+          className="bg-gray-200 appearance-none border-2 border-gray-200 rounded w-full py-4 px-4 text-gray-700 leading-tight focus:outline-none focus:bg-white focus:border-blue-500 text-2xl"
           placeholder="$ETH"
           onChange={(e) => {
             if (
