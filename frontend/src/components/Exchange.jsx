@@ -17,7 +17,6 @@ export default function Exchange() {
   async function executeBuySteak() {
     if (steakExchangeContract) {
       try {
-        console.log("estimatedPriceForSteak: ", ethTokenRate * SteakAmount);
         await steakExchangeContract.swapETHForTokens({
           value: ethers.utils.parseUnits(
             (ethTokenRate * SteakAmount).toString(),
@@ -45,7 +44,6 @@ export default function Exchange() {
           );
           approve.wait();
         }
-
         await steakExchangeContract.swapTokensForETH(
           ethers.utils.parseEther(SteakAmount.toString()).toString()
         );
@@ -70,7 +68,6 @@ export default function Exchange() {
         <InputField
           placeholder="$ STEAK"
           onChange={(e) => {
-            setSteakAmount(e.target.value);
             if (
               e.target.value === undefined ||
               e.target.value === null ||
@@ -84,32 +81,6 @@ export default function Exchange() {
         />
         <br />
         <Button onClick={() => executeBuySteak()}>Trade ETH to STEAK</Button>
-        <br />
-        <br />
-
-        {/* Buying ETH */}
-        <span className="block text-sm font-medium text-slate-700">
-          Estimated amount in STEAK:
-        </span>
-        {ETHAmount * tokenEthRate}
-        <span className="block text-sm font-medium text-slate-700">
-          Amount in ETH
-        </span>
-        <InputField
-          placeholder="$ ETH"
-          onChange={(e) => {
-            setETHAmount(e.target.value);
-            if (
-              e.target.value === undefined ||
-              e.target.value === null ||
-              e.target.value === ""
-            ) {
-              setETHAmount("0");
-            } else {
-              setETHAmount(e.target.value);
-            }
-          }}
-        />
         <br />
         <Button onClick={() => executeBuyETH()}>Trade STEAK to ETH</Button>
       </label>

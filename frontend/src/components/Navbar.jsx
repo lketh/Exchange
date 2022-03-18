@@ -2,8 +2,6 @@ import React from "react";
 import { useWallet } from "../context/WalletContext";
 import { getTruncatedAddress } from "../helpers";
 import { getSignerAddress } from "../provider";
-import Button from "./Button";
-import styles from "./styles/Header.module.css";
 
 export default function Navbar() {
   const { setWalletAddress, walletAddress } = useWallet();
@@ -19,15 +17,25 @@ export default function Navbar() {
   };
 
   return (
-    <nav className={styles.navbar}>
-      <div className={styles.brand}>Steak Swap</div>
-      <div className="nav-links">
-        <span>{}</span>
-        {walletAddress ? (
-          <span>{getTruncatedAddress(walletAddress)}</span>
-        ) : (
-          <Button onClick={handleConnect}>Connect</Button>
-        )}
+    <nav>
+      <div className="flex mb-8">
+        <div className="w-2/3 px-2">
+          <div className="font-mono text-4xl font-medium">Steak Swap</div>
+        </div>
+        <div className="w-1/3 px-2 flex items-center justify-end">
+          {walletAddress ? (
+            <div className="font-mono text-base ">
+              {getTruncatedAddress(walletAddress)}
+            </div>
+          ) : (
+            <button
+              className="bg-transparent hover:bg-black-500 text-black-700 font-semibold hover:text-blue-500 py-1 px-4 border border-black hover:border-transparent rounded"
+              onClick={handleConnect}
+            >
+              Connect
+            </button>
+          )}
+        </div>
       </div>
     </nav>
   );
