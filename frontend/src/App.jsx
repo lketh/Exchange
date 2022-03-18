@@ -6,31 +6,31 @@ import { SteakProvider } from "./context/SteakContext";
 import { ExchangeProvider } from "./context/ExchangeContext";
 import { WalletProvider } from "./context/WalletContext";
 import PoolInfo from "./components/PoolInfo";
+import UI from "./components/UI";
 
 function App() {
   return (
-    <div className="grid grid-cols-6">
-      <div className="col-start-2 col-span-4">
-        <WalletProvider>
-          <Navbar />
-          <div>
-            <ExchangeProvider>
+    <div className="bg-lime-400 ">
+      <WalletProvider>
+        <ExchangeProvider>
+          <SteakProvider>
+            <UI />
+          </SteakProvider>
+        </ExchangeProvider>
+      </WalletProvider>
+
+      {/* cf
+        <Navbar />
+        <div>
+           <ExchangeProvider>
               <SteakProvider>
                 <PoolInfo />
-                <div className="flex justify-evenly">
-                  <div className="">
-                    <Exchange />
-                  </div>
-                  <div className="">
-                    <Liquidity />
-                  </div>
-                </div>
+                <Exchange />
+                <Liquidity />
               </SteakProvider>
-            </ExchangeProvider>
-          </div>
-          <Footer />
-        </WalletProvider>
-      </div>
+            </ExchangeProvider> 
+         </div>
+      </WalletProvider> */}
     </div>
   );
 }

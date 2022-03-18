@@ -9,13 +9,13 @@ import InputField from "./InputField";
 export default function Exchange() {
   const { ethTokenRate, steakExchangeContract } = useExchange();
   const [amount, setAmount] = React.useState(0);
-
   const { steakContract } = useSteak();
   const { walletAddress } = useWallet();
 
   async function executeBuySteak() {
     if (steakExchangeContract) {
       try {
+        console.log("amount_: ", amount);
         console.log("estimatedPriceForSteak: ", ethTokenRate * amount);
         await steakExchangeContract.swapETHForTokens({
           value: ethers.utils.parseUnits(
@@ -45,7 +45,6 @@ export default function Exchange() {
           );
           approve.wait();
         }
-
         await steakExchangeContract.swapTokensForETH(
           ethers.utils.parseEther(amount.toString()).toString()
         );
@@ -68,7 +67,6 @@ export default function Exchange() {
         <InputField
           placeholder="$STEAK"
           onChange={(e) => {
-            setAmount(e.target.value);
             if (
               e.target.value === undefined ||
               e.target.value === null ||
@@ -77,11 +75,13 @@ export default function Exchange() {
               setAmount("0");
             } else {
               setAmount(e.target.value);
+              console.log("amountinonChange: ", amount);
             }
           }}
         />
         <br />
         <Button onClick={() => executeBuySteak()}>Trade ETH to STEAK</Button>
+        <br />
         <Button onClick={() => executeBuyETH()}>Trade STEAK to ETH</Button>
       </label>
     </div>
