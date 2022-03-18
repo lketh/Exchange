@@ -11,12 +11,15 @@ export default function PoolInfo() {
   } = useExchange();
 
   return (
-    <div className="mt-2">
-      Eth Liquidity: {ethLiquidity}
-      <br />
-      Token Liquidity: {tokenLiquidity}
-      <br />
-      WalletLiquidity: {walletLiquidity}
+    <div className="mx-4 mt-4 flex">
+      <div className="w-1/2 justify-start flex ">
+        {" "}
+        ETH Liquidity: {ethLiquidity}
+      </div>
+      <div className="w-1/2 justify-end flex ">
+        Steak Liquidity: {tokenLiquidity}
+      </div>
+      {/* WalletLiquidity: {walletLiquidity} */}
     </div>
   );
 }

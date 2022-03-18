@@ -11,7 +11,7 @@ export default function PoolInfo() {
   } = useExchange();
 
   return (
-    <div className="mt-2">
+    <div className="mt-">
       <h2 className="ext-3xl font-bold">Pool information</h2>
       <br />
       <table className="table-auto table">

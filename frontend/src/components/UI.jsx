@@ -2,7 +2,6 @@ import { useState } from "react";
 import { Tab } from "@headlessui/react";
 import Swap from "./Swap";
 import Navbar from "./Navbar";
-
 import AddRemoveLiquidity from "./AddRemoveLiquidity";
 import PoolInfo from "./PoolInfo";
 
@@ -11,11 +10,9 @@ function classNames(...classes) {
 }
 
 export default function Example() {
-  const color = "green";
-
   return (
     <div>
-      <PoolInfo />
+      {/* <PoolInfo /> */}
       <div className=" flex items-center justify-center h-screen">
         <div className="w-full max-w-md px-2 py-16 sm:px-0">
           <Navbar />
@@ -67,6 +64,8 @@ export default function Example() {
               </Tab.Panel>
             </Tab.Panels>
           </Tab.Group>
+
+          <PoolInfo />
         </div>
       </div>
     </div>
