@@ -7,21 +7,21 @@ import Button from "./Button";
 import InputField from "./InputField";
 
 export default function Exchange() {
-  const { ethTokenRate, steakExchangeContract } = useExchange();
-  const [amount, setAmount] = React.useState(0);
+  const { ethTokenRate, tokenEthRate, steakExchangeContract } = useExchange();
+  const [ETHAmount, setETHAmount] = React.useState(0);
+  const [SteakAmount, setSteakAmount] = React.useState(0);
+
   const { steakContract } = useSteak();
   const { walletAddress } = useWallet();
 
   async function executeBuySteak() {
     if (steakExchangeContract) {
       try {
-        console.log("amount_: ", amount);
-        console.log("estimatedPriceForSteak: ", ethTokenRate * amount);
         await steakExchangeContract.swapETHForTokens({
           value: ethers.utils.parseUnits(
-            (ethTokenRate * amount).toString(),
+            (ethTokenRate * SteakAmount).toString(),
             "ether"
-          ),
+          )
         });
       } catch (err) {
         console.error(err);
@@ -38,7 +38,6 @@ export default function Exchange() {
         );
 
         if (!(allowance > 0)) {
-          // TODO: approve only the amount of STEAK needed
           const approve = await steakContract.approve(
             steakExchangeContract.address,
             ethers.utils.parseEther("9999999999999999999999999").toString()
@@ -46,7 +45,7 @@ export default function Exchange() {
           approve.wait();
         }
         await steakExchangeContract.swapTokensForETH(
-          ethers.utils.parseEther(amount.toString()).toString()
+          ethers.utils.parseEther(SteakAmount.toString()).toString()
         );
       } catch (err) {
         console.error(err);
@@ -57,25 +56,26 @@ export default function Exchange() {
   return (
     <div className="mt-2">
       <label className="block">
+        {/* Buying Token */}
         <span className="block text-sm font-medium text-slate-700">
-          Estimated amount in ether:
+          Estimated amount in ETH:
         </span>
-        {amount * ethTokenRate}
+        {SteakAmount * ethTokenRate}
         <span className="block text-sm font-medium text-slate-700">
-          Amount in steak
+          Amount in STEAK
         </span>
+
         <InputField
-          placeholder="$STEAK"
+          placeholder="$ STEAK"
           onChange={(e) => {
             if (
               e.target.value === undefined ||
               e.target.value === null ||
               e.target.value === ""
             ) {
-              setAmount("0");
+              setSteakAmount("0");
             } else {
-              setAmount(e.target.value);
-              console.log("amountinonChange: ", amount);
+              setSteakAmount(e.target.value);
             }
           }}
         />
