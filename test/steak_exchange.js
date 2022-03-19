@@ -3,9 +3,11 @@ const { ethers, waffle } = require("hardhat");
 
 describe("SteakExchange", function () {
   let steakToken, steakExchange, signer, random_account;
+  const smallNumber = ethers.utils.parseEther("0.001");
+
   // ETH supply amount (100ETH)
   const initialSteakSupply = ethers.utils.parseEther("21000");
-  const initialETHSupply = ethers.utils.parseEther("1000");
+  const initialETHSupply = ethers.utils.parseEther("100");
 
   before(async function () {
     // deploy SteakToken with initialSteakSupply of 1000
@@ -24,282 +26,260 @@ describe("SteakExchange", function () {
 
   it("Create and initialize the pool", async function () {
     // Balance of STEAK in SteakToken Contract
-    const steakTokenBalance = await steakToken.balanceOf(signer.address);
-
-    console.log(
-      "steakTokenBalance: ",
-      ethers.utils.formatEther(steakTokenBalance)
-    );
+    const steakInEOA = await steakToken.balanceOf(signer.address);
 
     // approve SteakExchange to spend STEAK on SteakToken contract's behalf
     const approveSteakTokenTxn = await steakToken.approve(
       steakExchange.address,
-      steakTokenBalance
+      steakInEOA
     );
     approveSteakTokenTxn.wait();
 
-    // Creat Pool (2000 STEAK, 1000 ETH)
-    const lp = await steakExchange.createPool(steakTokenBalance, {
+    //* Creat Pool (2000 STEAK, 1000 ETH)
+    const lp = await steakExchange.createPool(steakInEOA, {
       value: initialETHSupply
     });
     lp.wait();
 
-    //
-    const ethBalance = await waffle.provider.getBalance(steakExchange.address);
-    console.log("ethBalance: ", ethers.utils.formatEther(ethBalance));
-  });
+    // check reserves in the pool
+    const steakInPool = await steakExchange.token_reserves();
+    const ethInPool = await steakExchange.eth_reserves();
 
-  it("Should have 2000 STEAKs reserved", async () => {
-    // should have 2000 STEAKs reserved
-    const steakReserves = await steakExchange.token_reserves();
-    expect(steakReserves).to.equal(initialSteakSupply);
-    console.log("steakReserves: ", ethers.utils.formatEther(steakReserves));
-  });
-
-  it("Should have 100 ETH reserved", async () => {
-    // should have 100 ETH reserved
-    const ethReserves = await steakExchange.eth_reserves();
-    expect(ethReserves).to.equal(initialETHSupply);
-    console.log("ethReserves: ", ethers.utils.formatEther(ethReserves));
+    //! Checks if the pool has initial supply amount
+    expect(steakInPool).to.equal(initialSteakSupply);
+    expect(ethInPool).to.equal(initialETHSupply);
   });
 
   it("Should be able to get ETH price", async function () {
     console.log(
-      "eth reserves: ",
+      "================================================================================"
+    );
+
+    console.log(
+      "ETH reserves: ",
       ethers.utils.formatEther(await steakExchange.eth_reserves())
     );
-    // TODO: fix the issue (ETH price being 0)
+
+    //! TODO: fix the issue (ETH price being 0)
     console.log(
       "ETH price: ",
-      ethers.utils.formatEther(await steakExchange.priceETH())
+      ethers.utils.formatUnits(await steakExchange.priceETH())
     );
-  });
-
-  it("Should be able to get Steak price", async function () {
     console.log(
-      "STEAK price: ",
-      ethers.utils.formatEther(await steakExchange.priceToken())
+      "--------------------------------------------------------------------------------"
     );
   });
 
-  // it("Should be able to create the LP pool for ETH-STEAK", async function () {
+  it("Should be able to get STEAK price", async function () {
+    const steakInPool = await steakExchange.token_reserves();
+    const ethInPool = await steakExchange.eth_reserves();
+    const steakPrice = await steakExchange.priceToken();
 
-  // });
+    // checks if : steakPrice == (steakInPool / ethInPool)
+    expect(steakPrice).to.equal(steakInPool.div(ethInPool));
+  });
 
   it("Should be able to swap ETH for Steak tokens", async function () {
-    // STEAK reserve before swap
-    const originalSteakReserves = await steakExchange.token_reserves();
-    // ETH reserve before swap
-    const originalETHReserves = await steakExchange.eth_reserves();
+    // Pool (Before txn)
+    const steakInPoolBefore = await steakExchange.token_reserves();
+    const ethInPoolBefore = await steakExchange.eth_reserves();
 
-    // swap - pay 100ETH and get STEAK token
+    // EOA (After txn)
+    const steakInEOABefore = await steakToken.balanceOf(signer.address);
+    const ethInEOABefore = await waffle.provider.getBalance(signer.address);
+
+    //* swap - pay 100ETH and get STEAK token
     const ethAmount = ethers.utils.parseEther("100");
     await steakExchange.swapETHForTokens({ value: ethAmount });
 
-    // steak/eth reserve after swap
-    const steakReserves = await steakExchange.token_reserves();
-    const ethReserves = await steakExchange.eth_reserves();
+    // Pool (After txn)
+    const steakInPoolAfter = await steakExchange.token_reserves();
+    const ethInPoolAfter = await steakExchange.eth_reserves();
 
-    // checks the difference of reserve before and after swap
-    const steakReservesDiff = originalSteakReserves.sub(steakReserves);
-    const ethReservesDiff = ethReserves.sub(originalETHReserves);
+    // EOA (Before txn)
+    const steakInEOAAfter = await steakToken.balanceOf(signer.address);
+    const ethInEOAAfter = await waffle.provider.getBalance(signer.address);
 
-    // EOA's final STEAk balance
-    const steakBalanceAfterSwap = await steakToken.balanceOf(signer.address);
+    // Pool Diff
+    const steakInPoolDiff = steakInPoolAfter.sub(steakInPoolBefore).abs();
+    const ethInPoolDiff = ethInPoolAfter.sub(ethInPoolBefore).abs();
+
+    // EOA Diff
+    const steakInEOADiff = steakInEOAAfter.sub(steakInEOABefore).abs();
+    const ethInEOADiff = ethInEOAAfter.sub(ethInEOABefore).abs();
 
     // checks if the EOA received STEAK he bought
-    expect(steakBalanceAfterSwap).to.equal(steakReservesDiff);
+    expect(steakInEOADiff).to.equal(steakInPoolDiff);
     // checks if the pool gained ETH paid
-    expect(ethReservesDiff).to.equal(ethAmount);
+    expect(steakInPoolDiff).to.be.closeTo(steakInEOADiff, smallNumber);
   });
 
   it("Should be able to swap Steak tokens for ETH", async function () {
-    // STEAK reserve before swap
-    const originalSteakReserves = await steakExchange.token_reserves();
-    // ETH reserve before swap
-    const originalETHReserves = await steakExchange.eth_reserves();
+    // Pool (Before txn)
+    const steakInPoolBefore = await steakExchange.token_reserves();
+    const ethInPoolBefore = await steakExchange.eth_reserves();
 
-    // 1000 STEAK
+    // EOA (After txn)
+    const steakInEOABefore = await steakToken.balanceOf(signer.address);
+    const ethInEOABefore = await waffle.provider.getBalance(signer.address);
+
+    //* Approval
     const steakAmount = ethers.utils.parseEther("1000");
-
-    // approval
     const approveTxn = await steakToken.approve(
       steakExchange.address,
       steakAmount
     );
     await approveTxn.wait();
 
-    // swap - pay 1000 STEAK and get ETH
+    //* Swap - pay 1000 STEAK and get ETH
     await steakExchange.swapTokensForETH(steakAmount);
 
-    // steak/eth reserve after swap
-    const steakReserves = await steakExchange.token_reserves();
-    const ethReserves = await steakExchange.eth_reserves();
+    // Pool (After txn)
+    const steakInPoolAfter = await steakExchange.token_reserves();
+    const ethInPoolAfter = await steakExchange.eth_reserves();
 
-    // chceks the difference of reserve before and after swap
-    const steakReservesDiff = steakReserves.sub(originalSteakReserves);
-    const ethReservesDiff = originalETHReserves.sub(ethReserves);
+    // EOA (Before txn)
+    const steakInEOAAfter = await steakToken.balanceOf(signer.address);
+    const ethInEOAAfter = await waffle.provider.getBalance(signer.address);
 
-    // EOA's final ETH balance
-    const ethBalanceAfterSwap = await waffle.provider.getBalance(
-      signer.address
-    );
+    // Pool Diff
+    const steakInPoolDiff = steakInPoolAfter.sub(steakInPoolBefore).abs();
+    const ethInPoolDiff = ethInPoolAfter.sub(ethInPoolBefore).abs();
 
-    // // checks if the pool gained STEAK paid
-    // expect(steakReservesDiff).to.equal(steakAmount);
-    // // checks if the EOA recieved ETH
-    // expect(ethBalanceAfterSwap).to.equal(ethReservesDiff);
+    // EOA Diff
+    const steakInEOADiff = steakInEOAAfter.sub(steakInEOABefore).abs();
+    const ethInEOADiff = ethInEOAAfter.sub(ethInEOABefore).abs();
+
+    // checks if EOA received ETH he bought
+    expect(ethInEOADiff).to.be.closeTo(ethInPoolDiff, smallNumber);
+    // check if Pool received STEAK EOA paid
+    expect(steakInPoolDiff).to.equal(steakInEOADiff);
   });
 
   it("Should be able to add liquidity to the pool", async function () {
-    const steakBalance = await steakToken.balanceOf(signer.address);
+    // Pool (Before txn)
+    const steakInPoolBefore = await steakExchange.token_reserves();
+    const ethInPoolBefore = await steakExchange.eth_reserves();
 
-    console.log("steakBalance: ", ethers.utils.formatEther(steakBalance));
+    // EOA (After txn)
+    const steakInEOABefore = await steakToken.balanceOf(signer.address);
+    const ethInEOABefore = await waffle.provider.getBalance(signer.address);
 
-    const etherPool = ethers.utils.parseEther("10");
-
-    // const lp = await steakExchange.createPool(steakBalance, {
-    //   value: etherPool
-    // });
-    // lp.wait();
-
+    //* Approve
+    const ethAmount = ethers.utils.parseEther("10");
     const approve = await steakToken.approve(
       steakExchange.address,
-      steakBalance
+      steakInPoolBefore
     );
     approve.wait();
 
-    await steakExchange.addLiquidity({
-      value: etherPool
+    //* Add Liquidity
+    const addLiquidityTxn = await steakExchange.addLiquidity({
+      value: ethAmount
     });
+    addLiquidityTxn.wait();
 
-    // const currentLiquidity = await steakExchange.token_reserves();
-    // const currentLiquidity2 = await steakExchange.eth_reserves();
-    // const currentLiquidity3 = await steakExchange.totalLP();
+    // Pool (After txn)
+    const steakInPoolAfter = await steakExchange.token_reserves();
+    const ethInPoolAfter = await steakExchange.eth_reserves();
 
-    // console.log(currentLiquidity);
-    // console.log(currentLiquidity2);
-    // console.log(currentLiquidity3);
-    expect(true);
+    // EOA (Before txn)
+    const steakInEOAAfter = await steakToken.balanceOf(signer.address);
+    const ethInEOAAfter = await waffle.provider.getBalance(signer.address);
+
+    // Pool Diff
+    const steakInPoolDiff = steakInPoolAfter.sub(steakInPoolBefore).abs();
+    const ethInPoolDiff = ethInPoolAfter.sub(ethInPoolBefore).abs();
+
+    // EOA Diff
+    const steakInEOADiff = steakInEOAAfter.sub(steakInEOABefore).abs();
+    const ethInEOADiff = ethInEOAAfter.sub(ethInEOABefore).abs();
+
+    expect(steakInPoolDiff).to.equal(steakInEOADiff);
+    expect(ethInPoolDiff).to.closeTo(ethInEOADiff, smallNumber);
   });
 
   it("Should be able to add remove some owned liquidity from the pool", async function () {
-    // // STEAK/ETH reserve in Exchange before removing
-    // const originalSteakReserves = await steakExchange.token_reserves();
-    // const originalETHReserves = await waffle.provider.getBalance(
-    //   signer.address
-    // );
-    // // STEAK/ETH balance in EOA before removing
-    // const originalSteakBalance = await steakToken.balanceOf(signer.address);
-    // const originalETHBalance = await waffle.provider.getBalance(signer.address);
+    // Pool (Before txn)
+    const steakInPoolBefore = await steakExchange.token_reserves();
+    const ethInPoolBefore = await steakExchange.eth_reserves();
+    const LPBefore = await steakExchange.poolLP(signer.address);
+    // EOA (After txn)
+    const steakInEOABefore = await steakToken.balanceOf(signer.address);
+    const ethInEOABefore = await waffle.provider.getBalance(signer.address);
 
-    // console.log(
-    //   "originalSteakReserves: ",
-    //   ethers.utils.formatEther(originalSteakReserves)
-    // );
-    // console.log(
-    //   "originalETHReserves: ",
-    //   ethers.utils.formatEther(originalETHReserves)
-    // );
-    // console.log(
-    //   "originalSteakBalance: ",
-    //   ethers.utils.formatEther(originalSteakBalance)
-    // );
-    // console.log(
-    //   "originalETHBalance: ",
-    //   ethers.utils.formatEther(originalETHBalance)
-    // );
-
-    //* remove liquidity
-    const removeAmount = ethers.utils.parseEther("5");
+    //* Txn : remove liquidity
+    const removeETHAmount = ethers.utils.parseEther("5");
     const removeLiquidityTxn = await steakExchange.removeLiquidity(
-      removeAmount
+      removeETHAmount
     );
     removeLiquidityTxn.wait();
 
-    // // STEAK/ETH reserve in Exchange before removing
-    // const finalSteakReserves = await steakExchange.token_reserves();
-    // const finalETHReserves = await waffle.provider.getBalance(signer.address);
+    // Pool (After txn)
+    const steakInPoolAfter = await steakExchange.token_reserves();
+    const ethInPoolAfter = await steakExchange.eth_reserves();
+    const LPAfter = await steakExchange.poolLP(signer.address);
+    // EOA (Before txn)
+    const steakInEOAAfter = await steakToken.balanceOf(signer.address);
+    const ethInEOAAfter = await waffle.provider.getBalance(signer.address);
+    // Pool Diff
+    const steakInPoolDiff = steakInPoolAfter.sub(steakInPoolBefore).abs();
+    const ethInPoolDiff = ethInPoolAfter.sub(ethInPoolBefore).abs();
+    // EOA Diff
+    const steakInEOADiff = steakInEOAAfter.sub(steakInEOABefore).abs();
+    const ethInEOADiff = ethInEOAAfter.sub(ethInEOABefore).abs();
 
-    // // STEAK/ETH balance in EOA before removing
-    // const finalSteakBalance = await steakToken.balanceOf(signer.address);
-    // const finalETHReBalance = await waffle.provider.getBalance(signer.address);
+    ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-    // console.log(
-    //   "finalSteakReserves: ",
-    //   ethers.utils.formatEther(finalSteakReserves)
-    // );
-    // console.log(
-    //   "finalETHReserves: ",
-    //   ethers.utils.formatEther(finalETHReserves)
-    // );
-    // console.log(
-    //   "finalSteakBalance: ",
-    //   ethers.utils.formatEther(finalSteakBalance)
-    // );
-    // console.log(
-    //   "finalETHReBalance: ",
-    //   ethers.utils.formatEther(finalETHReBalance)
-    // );
+    // Checks if steakInPool decrease == steakInEOA increase
+    expect(steakInPoolAfter).to.equal(steakInPoolBefore.sub(steakInEOADiff));
+
+    // Checks if ethInPool decrease == ethInEOA increase
+    expect(ethInPoolAfter).to.be.closeTo(
+      ethInPoolBefore.sub(ethInEOADiff),
+      smallNumber
+    );
   });
 
   it("Should be able to remove all owned liquidity from the pool", async function () {
-    // // STEAK/ETH reserve in Exchange before removing
-    // const originalSteakReserves = await steakExchange.token_reserves();
-    // const originalETHReserves = await waffle.provider.getBalance(
-    //   signer.address
-    // );
-    // // STEAK/ETH balance in EOA before removing
-    // const originalSteakBalance = await steakToken.balanceOf(signer.address);
-    // const originalETHBalance = await waffle.provider.getBalance(signer.address);
+    // Pool (Before txn)
+    const steakInPoolBefore = await steakExchange.token_reserves();
+    const ethInPoolBefore = await steakExchange.eth_reserves();
+    const LPBefore = await steakExchange.poolLP(signer.address);
 
-    // console.log(
-    //   "originalSteakReserves: ",
-    //   ethers.utils.formatEther(originalSteakReserves)
-    // );
-    // console.log(
-    //   "originalETHReserves: ",
-    //   ethers.utils.formatEther(originalETHReserves)
-    // );
-    // console.log(
-    //   "originalSteakBalance: ",
-    //   ethers.utils.formatEther(originalSteakBalance)
-    // );
-    // console.log(
-    //   "originalETHBalance: ",
-    //   ethers.utils.formatEther(originalETHBalance)
-    // );
+    // EOA (After txn)
+    const steakInEOABefore = await steakToken.balanceOf(signer.address);
+    const ethInEOABefore = await waffle.provider.getBalance(signer.address);
 
+    //* Tnx
     const removeAllTxn = await steakExchange.removeAllLiquidity();
     removeAllTxn.wait();
 
-    // // STEAK/ETH reserve in Exchange before removing
-    // const finalSteakReserves = await steakExchange.token_reserves();
-    // const finalETHReserves = await waffle.provider.getBalance(signer.address);
+    // Pool (After txn)
+    const steakInPoolAfter = await steakExchange.token_reserves();
+    const ethInPoolAfter = await steakExchange.eth_reserves();
+    const LPAfter = await steakExchange.poolLP(signer.address);
 
-    // // STEAK/ETH balance in EOA before removing
-    // const finalSteakBalance = await steakToken.balanceOf(signer.address);
-    // const finalETHReBalance = await waffle.provider.getBalance(signer.address);
+    // EOA (Before txn)
+    const steakInEOAAfter = await steakToken.balanceOf(signer.address);
+    const ethInEOAAfter = await waffle.provider.getBalance(signer.address);
 
-    // console.log(
-    //   "finalSteakReserves: ",
-    //   ethers.utils.formatEther(finalSteakReserves)
-    // );
-    // console.log(
-    //   "finalETHReserves: ",
-    //   ethers.utils.formatEther(finalETHReserves)
-    // );
-    // console.log(
-    //   "finalSteakBalance: ",
-    //   ethers.utils.formatEther(finalSteakBalance)
-    // );
-    // console.log(
-    //   "finalETHReBalance: ",
-    //   ethers.utils.formatEther(finalETHReBalance)
-    // );
-  });
+    // Pool Diff
+    const steakInPoolDiff = steakInPoolAfter.sub(steakInPoolBefore).abs();
+    const ethInPoolDiff = ethInPoolAfter.sub(ethInPoolBefore).abs();
 
-  it("Should be able to reinvest fees", async function () {
-    //   expect(true);
+    // EOA Diff
+    const steakInEOADiff = steakInEOAAfter.sub(steakInEOABefore).abs();
+    const ethInEOADiff = ethInEOAAfter.sub(ethInEOABefore).abs();
+
+    // Checks if LP has became 0
+    expect(LPAfter).to.be.closeTo(ethers.utils.parseEther("0"), smallNumber);
+    // Checks if steakInPool decrease == steakInEOA increase
+    expect(steakInPoolAfter).to.equal(steakInPoolBefore.sub(steakInEOADiff));
+    // Checks if ethInPool decrease == ethInEOA increase
+    expect(ethInPoolAfter).to.be.closeTo(
+      ethInPoolBefore.sub(ethInEOADiff),
+      smallNumber
+    );
   });
 });
