@@ -73,6 +73,12 @@ contract SteakExchange is Ownable {
     uint256 poolContrib = (msg.value / eth_reserves) * 10;
     poolLP[msg.sender] = poolContrib;
     totalLP = poolContrib * (10**18);
+
+    // console.log(totalLP);
+    // console.log(msg.value);
+    // console.log(eth_reserves);
+    // console.log(poolContrib);
+    // console.log(poolLP[msg.sender]);
   }
 
   // Given an amount of tokens, calculates the corresponding amount of ETH
