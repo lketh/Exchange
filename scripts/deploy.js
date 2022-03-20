@@ -8,7 +8,7 @@ async function main() {
   // Deploy Steak token contract
   const SteakToken = await hre.ethers.getContractFactory("SteakToken");
   const steakToken = await SteakToken.deploy(
-    hre.ethers.utils.parseEther("10000")
+    hre.ethers.utils.parseEther("100")
   );
   await steakToken.deployed();
   console.log(`SteakToken deployed to: ${steakToken.address}`);

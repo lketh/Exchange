@@ -1,5 +1,4 @@
-import { useState } from "react";
-import { Tab } from "@headlessui/react";
+import {Tab} from "@headlessui/react";
 import Swap from "./Swap";
 import Navbar from "./Navbar";
 import AddRemoveLiquidity from "./AddRemoveLiquidity";
@@ -12,14 +11,13 @@ function classNames(...classes) {
 export default function Example() {
   return (
     <div>
-      {/* <PoolInfo /> */}
       <div className=" flex items-center justify-center h-screen">
         <div className="w-full max-w-md px-2 py-16 sm:px-0">
           <Navbar />
           <Tab.Group>
             <Tab.List className="flex p-1 space-x-1 bg-blue-900/20 rounded-xl">
               <Tab
-                className={({ selected }) =>
+                className={({selected}) =>
                   classNames(
                     "w-full py-2.5 text-sm leading-5 font-medium text-blue-700 rounded-lg",
                     "focus:outline-none focus:ring-2 ring-offset-2 ring-offset-blue-400 ring-white ring-opacity-60",
@@ -32,7 +30,7 @@ export default function Example() {
                 Swap
               </Tab>
               <Tab
-                className={({ selected }) =>
+                className={({selected}) =>
                   classNames(
                     "w-full py-2.5 text-sm leading-5 font-medium text-blue-700 rounded-lg",
                     "focus:outline-none focus:ring-2 ring-offset-2 ring-offset-blue-400 ring-white ring-opacity-60",

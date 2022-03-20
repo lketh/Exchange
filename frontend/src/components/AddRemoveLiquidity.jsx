@@ -5,20 +5,15 @@ import { useWallet } from "../context/WalletContext";
 import { useSteak } from "../context/SteakContext";
 
 export default function AddRemoveLiquidity() {
-  const { steakExchangeContract } = useExchange();
+  const { steakExchangeContract, walletLiquidity } = useExchange();
   const { steakContract } = useSteak();
   const [addAmount, setAddAmount] = React.useState(0);
   const [removeAmount, setRemoveAmount] = React.useState(0);
-  const [totalLP, setTotalLP] = React.useState(0);
   const { walletAddress } = useWallet();
 
   async function removeLiquidity() {
     if (steakExchangeContract) {
       try {
-        const lpBalance = await steakExchangeContract.poolLP(walletAddress);
-        // console.log(
-        //   `Wallet LP balance: ${ethers.utils.formatEther(lpBalance)}`
-        // );
         await steakExchangeContract.removeLiquidity(removeAmount);
       } catch (err) {
         console.log(err);
@@ -29,26 +24,7 @@ export default function AddRemoveLiquidity() {
   async function removeAllLiquidity() {
     if (steakExchangeContract) {
       try {
-        const lpBalance = await steakExchangeContract.poolLP(walletAddress);
-        console.log(
-          `Wallet LP balance: ${ethers.utils.formatEther(lpBalance)}`
-        );
-        const totallpBalance = await steakExchangeContract.totalLP();
-        console.log(`total LP: ${ethers.utils.formatEther(totallpBalance)}`);
         await steakExchangeContract.removeAllLiquidity();
-      } catch (err) {
-        console.log(err);
-      }
-    }
-  }
-
-  // not picking up the first value
-  async function getTotalLP() {
-    if (steakExchangeContract) {
-      try {
-        const totallpBalance = await steakExchangeContract.totalLP();
-        setTotalLP(totallpBalance);
-        console.log("totalLP: ", ethers.utils.formatEther(totalLP));
       } catch (err) {
         console.log(err);
       }
@@ -81,14 +57,21 @@ export default function AddRemoveLiquidity() {
     }
   }
 
+  function formatWalletLiquidity() {
+    if (typeof walletLiquidity === "string" && +walletLiquidity > 0) {
+      return (+walletLiquidity).toFixed(3);
+    } else {
+      return walletLiquidity;
+    }
+  }
+
   return (
     <div className="grid grid-cols-1">
       <div className="mb-6 font-mono text-sm mt-2">
-        <h3>Your current LP position (hardcoded rn)</h3>
+        <h3>Your current LP position</h3>
         <div className="my-4 text-3xl text-center font-mono">
-          24 ETH + 1000 STEAK
+          {formatWalletLiquidity()}
         </div>
-        {/* <div>WalletLiquidity: {walletLiquidity} </div> */}
       </div>
       <div className="mb-6 font-mono text-sm">
         Add liquidity
@@ -147,9 +130,6 @@ export default function AddRemoveLiquidity() {
           >
             Remove all liquidity
           </button>
-          {/* <button className="underline" onClick={() => getTotalLP()}>
-          Max
-        </button> */}
         </div>
       </div>
     </div>

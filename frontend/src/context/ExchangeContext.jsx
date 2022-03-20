@@ -51,7 +51,7 @@ export const ExchangeProvider = ({ children }) => {
   async function getTokenLiquidity() {
     if (contract) {
       try {
-        const liquidity = (await contract.token_reserves()) * 10 ** -18;
+        const liquidity = (await contract.tokenReserves()) * 10 ** -18;
         if (typeof liquidity === "number") {
           return liquidity.toFixed(3);
         } else {
@@ -65,7 +65,7 @@ export const ExchangeProvider = ({ children }) => {
   async function getEthLiquidity() {
     if (contract) {
       try {
-        const ethLiquidity = (await contract.eth_reserves()) * 10 ** -18;
+        const ethLiquidity = (await contract.ethReserves()) * 10 ** -18;
         if (typeof ethLiquidity === "number") {
           return ethLiquidity.toFixed(3);
         } else {
@@ -108,7 +108,7 @@ export const ExchangeProvider = ({ children }) => {
     if (contract && walletAddress) {
       try {
         const walletLiquidity = ethers.utils.formatEther(
-          (await contract.poolLP(walletAddress)).toString()
+          (await contract.shares(walletAddress)).toString()
         );
         if (typeof walletLiquidity === "number") {
           return walletLiquidity.toFixed(3);

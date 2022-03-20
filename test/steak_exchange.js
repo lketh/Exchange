@@ -2,11 +2,11 @@ const { expect } = require("chai");
 const { ethers, waffle } = require("hardhat");
 
 describe("SteakExchange", function () {
-  let steakToken, steakExchange, signer, random_account;
+  let steakToken, steakExchange, signer;
   const smallNumber = ethers.utils.parseEther("0.001");
 
   // ETH supply amount (100ETH)
-  const initialSteakSupply = ethers.utils.parseEther("21000");
+  const initialSteakSupply = ethers.utils.parseEther("1000");
   const initialETHSupply = ethers.utils.parseEther("100");
 
   before(async function () {
@@ -37,43 +37,23 @@ describe("SteakExchange", function () {
 
     //* Creat Pool (2000 STEAK, 1000 ETH)
     const lp = await steakExchange.createPool(steakInEOA, {
-      value: initialETHSupply
+      value: initialETHSupply,
     });
     lp.wait();
 
     // check reserves in the pool
-    const steakInPool = await steakExchange.token_reserves();
-    const ethInPool = await steakExchange.eth_reserves();
+    const steakInPool = await steakExchange.tokenReserves();
+    const ethInPool = await steakExchange.ethReserves();
 
     //! Checks if the pool has initial supply amount
     expect(steakInPool).to.equal(initialSteakSupply);
     expect(ethInPool).to.equal(initialETHSupply);
   });
 
-  it("Should be able to get ETH price", async function () {
-    console.log(
-      "================================================================================"
-    );
-
-    console.log(
-      "ETH reserves: ",
-      ethers.utils.formatEther(await steakExchange.eth_reserves())
-    );
-
-    //! TODO: fix the issue (ETH price being 0)
-    console.log(
-      "ETH price: ",
-      ethers.utils.formatUnits(await steakExchange.priceETH())
-    );
-    console.log(
-      "--------------------------------------------------------------------------------"
-    );
-  });
-
   it("Should be able to get STEAK price", async function () {
-    const steakInPool = await steakExchange.token_reserves();
-    const ethInPool = await steakExchange.eth_reserves();
-    const steakPrice = await steakExchange.priceToken();
+    const steakInPool = await steakExchange.tokenReserves();
+    const ethInPool = await steakExchange.ethReserves();
+    const steakPrice = await steakExchange.tokenPrice();
 
     // checks if : steakPrice == (steakInPool / ethInPool)
     expect(steakPrice).to.equal(steakInPool.div(ethInPool));
@@ -81,8 +61,8 @@ describe("SteakExchange", function () {
 
   it("Should be able to swap ETH for Steak tokens", async function () {
     // Pool (Before txn)
-    const steakInPoolBefore = await steakExchange.token_reserves();
-    const ethInPoolBefore = await steakExchange.eth_reserves();
+    const steakInPoolBefore = await steakExchange.tokenReserves();
+    const ethInPoolBefore = await steakExchange.ethReserves();
 
     // EOA (After txn)
     const steakInEOABefore = await steakToken.balanceOf(signer.address);
@@ -93,8 +73,8 @@ describe("SteakExchange", function () {
     await steakExchange.swapETHForTokens({ value: ethAmount });
 
     // Pool (After txn)
-    const steakInPoolAfter = await steakExchange.token_reserves();
-    const ethInPoolAfter = await steakExchange.eth_reserves();
+    const steakInPoolAfter = await steakExchange.tokenReserves();
+    const ethInPoolAfter = await steakExchange.ethReserves();
 
     // EOA (Before txn)
     const steakInEOAAfter = await steakToken.balanceOf(signer.address);
@@ -116,15 +96,15 @@ describe("SteakExchange", function () {
 
   it("Should be able to swap Steak tokens for ETH", async function () {
     // Pool (Before txn)
-    const steakInPoolBefore = await steakExchange.token_reserves();
-    const ethInPoolBefore = await steakExchange.eth_reserves();
+    const steakInPoolBefore = await steakExchange.tokenReserves();
+    const ethInPoolBefore = await steakExchange.ethReserves();
 
     // EOA (After txn)
     const steakInEOABefore = await steakToken.balanceOf(signer.address);
     const ethInEOABefore = await waffle.provider.getBalance(signer.address);
 
     //* Approval
-    const steakAmount = ethers.utils.parseEther("1000");
+    const steakAmount = ethers.utils.parseEther("100");
     const approveTxn = await steakToken.approve(
       steakExchange.address,
       steakAmount
@@ -135,8 +115,8 @@ describe("SteakExchange", function () {
     await steakExchange.swapTokensForETH(steakAmount);
 
     // Pool (After txn)
-    const steakInPoolAfter = await steakExchange.token_reserves();
-    const ethInPoolAfter = await steakExchange.eth_reserves();
+    const steakInPoolAfter = await steakExchange.tokenReserves();
+    const ethInPoolAfter = await steakExchange.ethReserves();
 
     // EOA (Before txn)
     const steakInEOAAfter = await steakToken.balanceOf(signer.address);
@@ -158,8 +138,8 @@ describe("SteakExchange", function () {
 
   it("Should be able to add liquidity to the pool", async function () {
     // Pool (Before txn)
-    const steakInPoolBefore = await steakExchange.token_reserves();
-    const ethInPoolBefore = await steakExchange.eth_reserves();
+    const steakInPoolBefore = await steakExchange.tokenReserves();
+    const ethInPoolBefore = await steakExchange.ethReserves();
 
     // EOA (After txn)
     const steakInEOABefore = await steakToken.balanceOf(signer.address);
@@ -175,13 +155,13 @@ describe("SteakExchange", function () {
 
     //* Add Liquidity
     const addLiquidityTxn = await steakExchange.addLiquidity({
-      value: ethAmount
+      value: ethAmount,
     });
     addLiquidityTxn.wait();
 
     // Pool (After txn)
-    const steakInPoolAfter = await steakExchange.token_reserves();
-    const ethInPoolAfter = await steakExchange.eth_reserves();
+    const steakInPoolAfter = await steakExchange.tokenReserves();
+    const ethInPoolAfter = await steakExchange.ethReserves();
 
     // EOA (Before txn)
     const steakInEOAAfter = await steakToken.balanceOf(signer.address);
@@ -201,9 +181,9 @@ describe("SteakExchange", function () {
 
   it("Should be able to add remove some owned liquidity from the pool", async function () {
     // Pool (Before txn)
-    const steakInPoolBefore = await steakExchange.token_reserves();
-    const ethInPoolBefore = await steakExchange.eth_reserves();
-    const LPBefore = await steakExchange.poolLP(signer.address);
+    const steakInPoolBefore = await steakExchange.tokenReserves();
+    const ethInPoolBefore = await steakExchange.ethReserves();
+    const LPBefore = await steakExchange.shares(signer.address);
     // EOA (After txn)
     const steakInEOABefore = await steakToken.balanceOf(signer.address);
     const ethInEOABefore = await waffle.provider.getBalance(signer.address);
@@ -216,9 +196,9 @@ describe("SteakExchange", function () {
     removeLiquidityTxn.wait();
 
     // Pool (After txn)
-    const steakInPoolAfter = await steakExchange.token_reserves();
-    const ethInPoolAfter = await steakExchange.eth_reserves();
-    const LPAfter = await steakExchange.poolLP(signer.address);
+    const steakInPoolAfter = await steakExchange.tokenReserves();
+    const ethInPoolAfter = await steakExchange.ethReserves();
+    const LPAfter = await steakExchange.shares(signer.address);
     // EOA (Before txn)
     const steakInEOAAfter = await steakToken.balanceOf(signer.address);
     const ethInEOAAfter = await waffle.provider.getBalance(signer.address);
@@ -243,9 +223,9 @@ describe("SteakExchange", function () {
 
   it("Should be able to remove all owned liquidity from the pool", async function () {
     // Pool (Before txn)
-    const steakInPoolBefore = await steakExchange.token_reserves();
-    const ethInPoolBefore = await steakExchange.eth_reserves();
-    const LPBefore = await steakExchange.poolLP(signer.address);
+    const steakInPoolBefore = await steakExchange.tokenReserves();
+    const ethInPoolBefore = await steakExchange.ethReserves();
+    const LPBefore = await steakExchange.shares(signer.address);
 
     // EOA (After txn)
     const steakInEOABefore = await steakToken.balanceOf(signer.address);
@@ -256,9 +236,9 @@ describe("SteakExchange", function () {
     removeAllTxn.wait();
 
     // Pool (After txn)
-    const steakInPoolAfter = await steakExchange.token_reserves();
-    const ethInPoolAfter = await steakExchange.eth_reserves();
-    const LPAfter = await steakExchange.poolLP(signer.address);
+    const steakInPoolAfter = await steakExchange.tokenReserves();
+    const ethInPoolAfter = await steakExchange.ethReserves();
+    const LPAfter = await steakExchange.shares(signer.address);
 
     // EOA (Before txn)
     const steakInEOAAfter = await steakToken.balanceOf(signer.address);

@@ -3,13 +3,11 @@ pragma solidity ^0.8.12;
 
 import "./libraries/ERC20.sol";
 import "./libraries/Ownable.sol";
-import "hardhat/console.sol";
 
 contract SteakToken is Ownable, ERC20 {
   bool enabled = true;
 
   constructor(uint256 _initialSupply) ERC20("SteakToken", "STEAK") {
-    // uint256 initialSupply = _initialSupply * (10**18);
     _mint(msg.sender, _initialSupply);
   }
 
@@ -24,7 +22,7 @@ contract SteakToken is Ownable, ERC20 {
   /*
    * Disables the ability to mint tokens in the future.
    */
-  function disable_mint() public onlyOwner {
+  function disableMint() public onlyOwner {
     require(enabled, "The contract is paused");
     enabled = false;
   }
@@ -32,7 +30,7 @@ contract SteakToken is Ownable, ERC20 {
   /*
    * Enables the ability to mint tokens in the future.
    */
-  function enable_mint() public onlyOwner {
+  function enableMint() public onlyOwner {
     require(!enabled, "The contract is not paused");
     enabled = true;
   }

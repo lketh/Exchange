@@ -5,11 +5,10 @@ import "./interfaces/IERC20.sol";
 import "./libraries/Ownable.sol";
 import "./SteakToken.sol";
 
-import "hardhat/console.sol";
-
 /* This exchange is based off of Uniswap V1. The original whitepaper for the constant product rule
  * can be found here:
  * https://github.com/runtimeverification/verified-smart-contracts/blob/uniswap/uniswap/x-y-k.pdf
+ * It has been heavily simplified for learning purposes.
  */
 
 contract SteakExchange is Ownable {
@@ -17,19 +16,18 @@ contract SteakExchange is Ownable {
 
   SteakToken private token;
   // Liquidity pool for the exchange
-  uint256 public token_reserves = 0;
-  uint256 public eth_reserves = 0;
+  uint256 public tokenReserves = 0;
+  uint256 public ethReserves = 0;
 
   // Constant: x * y = k
   uint256 public k;
 
   // liquidity rewards
-  uint256 private swap_fee_numerator = 0; // TODO Part 5: Set liquidity providers' returns.
-  uint256 private swap_fee_denominator = 100;
+  uint256 private swapFeeNumerator = 0;
+  uint256 private swapFeeDenominator = 100;
 
-  // keeping track of LP shares - poolLP can be seen as a fictional LP "token" which is not distributed out but tracked internally - save gas
-  mapping(address => uint256) public poolLP;
-  uint256 public totalLP;
+  mapping(address => uint256) public shares;
+  uint256 public globalCounter;
 
   event AddLiquidity(address from, uint256 amount);
   event RemoveLiquidity(address to, uint256 amount);
@@ -51,34 +49,24 @@ contract SteakExchange is Ownable {
    * This is a payable function which means you can send in ETH as a quasi-parameter. In this
    * case, the amount of eth sent to the pool will be in msg.value and the number of tokens will
    * be amountTokens.
-   *
-   * Requirements:
-   *  - the liquidity pool should be empty to start
-   *  - the sender should send positive values for each
    */
   function createPool(uint256 amountTokens) external payable onlyOwner {
     // require pool does not yet exist
-    require(token_reserves == 0, "Token reserves was not 0");
-    require(eth_reserves == 0, "ETH reserves was not 0.");
+    require(tokenReserves == 0, "Token reserves was not 0");
+    require(ethReserves == 0, "ETH reserves was not 0.");
 
     // require nonzero values were sent
     require(msg.value > 0, "Need ETH to create pool.");
     require(amountTokens > 0, "Need tokens to create pool.");
 
     token.transferFrom(msg.sender, address(this), amountTokens);
-    eth_reserves = msg.value;
-    token_reserves = amountTokens;
-    k = eth_reserves * token_reserves;
+    ethReserves = msg.value;
+    tokenReserves = amountTokens;
+    k = ethReserves * tokenReserves;
 
-    uint256 poolContrib = (msg.value / eth_reserves) * 10;
-    poolLP[msg.sender] = poolContrib;
-    totalLP = poolContrib * (10**18);
-
-    // console.log(totalLP);
-    // console.log(msg.value);
-    // console.log(eth_reserves);
-    // console.log(poolContrib);
-    // console.log(poolLP[msg.sender]);
+    uint256 poolContrib = (msg.value / ethReserves) * 10;
+    shares[msg.sender] = poolContrib;
+    globalCounter = poolContrib * (10**18);
   }
 
   // Given an amount of tokens, calculates the corresponding amount of ETH
@@ -88,7 +76,7 @@ contract SteakExchange is Ownable {
     view
     returns (uint256)
   {
-    return amountToken * priceETH();
+    return amountToken * (ethReserves / tokenReserves);
   }
 
   // Given an amount of ETH, calculates the corresponding amount of tokens
@@ -98,7 +86,7 @@ contract SteakExchange is Ownable {
     view
     returns (uint256)
   {
-    return amountETH * priceToken();
+    return amountETH * tokenPrice();
   }
 
   /* ========================= Liquidity Provider Functions =========================  */
@@ -116,17 +104,17 @@ contract SteakExchange is Ownable {
     // Attempt to reinvest fees BEFORE adding liquidity; this will distribute as much of the accrued unassigned fees as possible to already EXISTING LPs
     reinvestFees();
 
-    uint256 amountTokens = (msg.value * priceToken());
+    uint256 amountTokens = (msg.value * tokenPrice());
 
     // Calculate new LP "token" amount received based on percent of existing ETH reserves
-    uint256 poolContrib = ((totalLP * msg.value) / eth_reserves) * 10;
-    poolLP[msg.sender] = poolLP[msg.sender] + poolContrib;
-    totalLP = totalLP + poolContrib;
+    uint256 poolContrib = ((globalCounter * msg.value) / ethReserves) * 10;
+    shares[msg.sender] = shares[msg.sender] + poolContrib;
+    globalCounter = globalCounter + poolContrib;
 
     // Keep track of LP "tokens", reserves, and k post changes
-    eth_reserves = eth_reserves + msg.value;
-    token_reserves = token_reserves + amountTokens;
-    k = eth_reserves * token_reserves;
+    ethReserves = ethReserves + msg.value;
+    tokenReserves = tokenReserves + amountTokens;
+    k = ethReserves * tokenReserves;
 
     // Transfers always last to eliminate reentrancy risk (mostly this matters on ETH)
     // requirement for sender to have sufficient permissioned token will be checked by the transferFrom function - saves gas
@@ -150,25 +138,25 @@ contract SteakExchange is Ownable {
     // Attempt to reinvest fees BEFORE claim; this will distribute as much of the accrued unassigned fees as possible
     reinvestFees();
 
-    uint256 amountTokens = (amountETH * priceToken());
+    uint256 amountTokens = (amountETH * tokenPrice());
 
     // Calculate LP "token" amount to cancel based on percent of existing ETH reserves
-    uint256 poolContrib = ((totalLP * amountETH) / eth_reserves) * 10;
+    uint256 poolContrib = ((globalCounter * amountETH) / ethReserves) * 10;
 
     // require remaining ETH and token in the pool and sufficient LP claim to withdraw desired ETH
     require(
-      eth_reserves > amountETH &&
-        token_reserves > amountTokens &&
-        poolLP[msg.sender] >= poolContrib,
+      ethReserves > amountETH &&
+        tokenReserves > amountTokens &&
+        shares[msg.sender] >= poolContrib,
       "Trying to remove more than max available"
     );
 
     // Keep track of LP "tokens", reserves, and k post changes
-    poolLP[msg.sender] = poolLP[msg.sender] - poolContrib;
-    totalLP = totalLP - poolContrib;
-    eth_reserves = eth_reserves - amountETH;
-    token_reserves = token_reserves - amountTokens;
-    k = eth_reserves * token_reserves;
+    shares[msg.sender] = shares[msg.sender] - poolContrib;
+    globalCounter = globalCounter - poolContrib;
+    ethReserves = ethReserves - amountETH;
+    tokenReserves = tokenReserves - amountTokens;
+    k = ethReserves * tokenReserves;
 
     // Transfers always last to eliminate reentrancy risk (mostly this matters on ETH)
     token.transfer(msg.sender, amountTokens);
@@ -187,7 +175,7 @@ contract SteakExchange is Ownable {
   function removeAllLiquidity() public payable {
     // Can't remove all liquidity
     require(
-      totalLP > poolLP[msg.sender],
+      globalCounter > shares[msg.sender],
       "Can't have last provider withdraw all"
     );
 
@@ -195,7 +183,7 @@ contract SteakExchange is Ownable {
     reinvestFees();
 
     // Can withdraw as much of the pool ETH total as the ratio of LP "tokens" owned
-    removeLiquidity(((eth_reserves * poolLP[msg.sender]) / totalLP) / 10);
+    removeLiquidity(((ethReserves * shares[msg.sender]) / globalCounter) / 10);
   }
 
   /* ========================= Swap Functions =========================  */
@@ -212,18 +200,18 @@ contract SteakExchange is Ownable {
     // Calculate the new reserve projections which keep k constant after adding amountTokens KGB's to the pool, less fees
     // The KGB remainder token (fee) just remains in the exchange account, but without being assigned to the pool yet
     uint256 amountTokensExFee = amountTokens -
-      ((amountTokens * swap_fee_numerator) / swap_fee_denominator);
-    uint256 newTokenReserve = token_reserves + amountTokensExFee;
+      ((amountTokens * swapFeeNumerator) / swapFeeDenominator);
+    uint256 newTokenReserve = tokenReserves + amountTokensExFee;
     uint256 newETHReserve = k / newTokenReserve;
 
     // Amount to return for the swap falls out directly from projected pool reserve
-    uint256 amountETH = eth_reserves - newETHReserve;
+    uint256 amountETH = ethReserves - newETHReserve;
 
     //  If performing the swap would exhaust total ETH supply, transaction must fail.
-    require(eth_reserves > amountETH, "This would drain the pool");
+    require(ethReserves > amountETH, "This would drain the pool");
 
-    eth_reserves = newETHReserve;
-    token_reserves = newTokenReserve;
+    ethReserves = newETHReserve;
+    tokenReserves = newTokenReserve;
 
     // Transfers always last to eliminate reentrancy risk (mostly this matters on ETH)
     // Receive all tokens including fee
@@ -233,9 +221,9 @@ contract SteakExchange is Ownable {
     payable(msg.sender).transfer(amountETH);
 
     // Check for x * y == k, assuming x and y are rounded to the nearest integer.
-    // Check for Math.abs(token_reserves * eth_reserves - k) < (token_reserves + eth_reserves + 1));
+    // Check for Math.abs(tokenReserves * ethReserves - k) < (tokenReserves + ethReserves + 1));
     //   to account for the small decimal errors during uint division rounding.
-    assert(_checkRounding() < (token_reserves + eth_reserves) + 1);
+    assert(_checkRounding() < (tokenReserves + ethReserves) + 1);
   }
 
   /**
@@ -250,27 +238,27 @@ contract SteakExchange is Ownable {
     // Calculate the new reserve projections which keep k constant after adding the msg.value to ETH pool, less fees
     // The ETH remainder (fee) just remains in the exchange account, but without being assigned to the pool yet
     uint256 amountETH = msg.value -
-      ((msg.value * swap_fee_numerator) / swap_fee_denominator);
-    uint256 newETHReserve = eth_reserves + amountETH;
+      ((msg.value * swapFeeNumerator) / swapFeeDenominator);
+    uint256 newETHReserve = ethReserves + amountETH;
     uint256 newTokenReserve = k / newETHReserve;
 
     // Amount to return for the swap falls out directly from projected pool reserve
-    uint256 amountTokens = token_reserves - newTokenReserve;
+    uint256 amountTokens = tokenReserves - newTokenReserve;
 
     //  If performing the swap would exhaust total token supply, transaction must fail.
-    require(token_reserves > amountTokens, "This would drain the pool");
+    require(tokenReserves > amountTokens, "This would drain the pool");
 
-    eth_reserves = newETHReserve;
-    token_reserves = newTokenReserve;
+    ethReserves = newETHReserve;
+    tokenReserves = newTokenReserve;
 
     // Transfers always last to eliminate reentrancy risk (mostly this matters on ETH)
     // Send out the k-curve exchanged tokens, ex fees
     token.transfer(msg.sender, amountTokens);
 
     // Check for x * y == k, assuming x and y are rounded to the nearest integer.
-    // Check for Math.abs(token_reserves * eth_reserves - k) < (token_reserves + eth_reserves + 1));
+    // Check for Math.abs(tokenReserves * ethReserves - k) < (tokenReserves + ethReserves + 1));
     //   to account for the small decimal errors during uint division rounding.
-    assert(_checkRounding() < (token_reserves + eth_reserves) + 1);
+    assert(_checkRounding() < (tokenReserves + ethReserves) + 1);
   }
 
   /**
@@ -279,36 +267,28 @@ contract SteakExchange is Ownable {
    * A liquidity provider should be able to input more (up to 1) tokens than they are theoretically
    * entitled to, and should be able to withdraw less (up to -1) tokens then they are entitled to.
    *
-   * Checks for Math.abs(token_reserves * eth_reserves - k) < (token_reserves + eth_reserves + 1));
+   * Checks for Math.abs(tokenReserves * ethReserves - k) < (tokenReserves + ethReserves + 1));
    * to account for the small decimal errors during uint division rounding.
    */
   function _checkRounding() private returns (uint256) {
-    uint256 check = token_reserves * eth_reserves;
+    uint256 check = tokenReserves * ethReserves;
     if (check >= k) {
       check = check - k;
     } else {
       check = k - check;
     }
-    assert(check < (token_reserves + eth_reserves + 1));
-    k = token_reserves * eth_reserves; // reset k due to small rounding errors
+    assert(check < (tokenReserves + ethReserves + 1));
+    k = tokenReserves * ethReserves; // reset k due to small rounding errors
 
     return check;
   }
 
   /** Utility functions
-   * Function priceToken: Calculate the price of your token in ETH.
-   * You can change the inputs, or the scope of your function, as needed.
+   * Function tokenPrice: Calculate the price of your token in ETH.
+   * This function shoulnd't be trusted instead calculate this in the client.
    */
-  function priceToken() public view returns (uint256) {
-    return (token_reserves) / eth_reserves;
-  }
-
-  /**
-   * Function priceETH: Calculate the price of ETH for your token.
-   * You can change the inputs, or the scope of your function, as needed.
-   */
-  function priceETH() public view returns (uint256) {
-    return (eth_reserves) / token_reserves;
+  function tokenPrice() public view returns (uint256) {
+    return tokenReserves / ethReserves;
   }
 
   /**
@@ -318,17 +298,17 @@ contract SteakExchange is Ownable {
     // Can only reinvest fees if have positive balances of both ETH and token, not yet assigned to pool. Note we first ensure this, so that exchanges with some rounding error can still function without underflows on fee calcs
     // Also saves gas on second call from removeAllLiquidity -> removeLiquidity - just one if to evaluate
     if (
-      address(this).balance > (eth_reserves + msg.value) &&
-      token.balanceOf(address(this)) > token_reserves
+      address(this).balance > (ethReserves + msg.value) &&
+      token.balanceOf(address(this)) > tokenReserves
     ) {
       // Calculate residual token and ETH balances in contract which are not yet assigned to pool reserves. These will usually be the fees plus any "gifts"
-      uint256 unassignedToken = token.balanceOf(address(this)) - token_reserves;
+      uint256 unassignedToken = token.balanceOf(address(this)) - tokenReserves;
 
       // Since we call this before adding new ETH liquidity to pool, need to make sure we don't yet include new add liquidity as "fee unassigned"
-      uint256 unassignedETH = address(this).balance - msg.value - eth_reserves;
+      uint256 unassignedETH = address(this).balance - msg.value - ethReserves;
 
       // Project tentative maxETH that would balance all available unassigned tokens being added to pool reserves
-      uint256 maxETH = (unassignedToken * priceETH());
+      uint256 maxETH = (unassignedToken * (ethReserves / tokenReserves));
       uint256 maxToken;
 
       // The max ETH we can assign to the pool is the max between that unassigned ETH left and the exchange-ratio balancing for unassigned token; and vice-versa for token to assign
@@ -338,13 +318,13 @@ contract SteakExchange is Ownable {
       } else {
         // We don't have sufficient unassigned ETH to cover all the unassigned token; ETH is the limiting factor. Update original projection; project maxToken
         maxETH = unassignedETH;
-        maxToken = (unassignedETH * priceToken());
+        maxToken = (unassignedETH * tokenPrice());
       }
 
       // We adjust the reserves and k, but not the LP "tokens" or LP totals - this way the reinvestment goes to existing LPs
-      eth_reserves = eth_reserves + maxETH;
-      token_reserves = token_reserves + maxToken;
-      k = eth_reserves * token_reserves;
+      ethReserves = ethReserves + maxETH;
+      tokenReserves = tokenReserves + maxToken;
+      k = ethReserves * tokenReserves;
 
       emit Reinvested(maxETH, maxToken);
     }
