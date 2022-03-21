@@ -28,3 +28,4 @@ and for the frontend:
 ## TODO
 
 - []: make use of useEffect in Swap, Add/remove liquidity.
+- []: make sure everything is reactive.
