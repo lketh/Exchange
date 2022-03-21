@@ -201,18 +201,11 @@ contract SteakExchange is Ownable {
   function swapTokensForETH(uint256 amountTokens) external payable {
     uint256 amountTokensExFee = amountTokens -
       ((amountTokens * swapFeeNumerator) / swapFeeDenominator);
-    console.log(amountTokens);
-    console.log(swapFeeNumerator);
-    console.log(swapFeeDenominator);
-    console.log(amountTokensExFee);
     uint256 newTokenReserve = tokenReserves + amountTokensExFee;
-    console.log(newTokenReserve);
     uint256 newETHReserve = k / newTokenReserve;
-    console.log(newETHReserve);
 
     // Amount to return for the swap falls out directly from projected pool reserve
     uint256 amountETH = ethReserves - newETHReserve;
-    console.log(amountETH);
 
     //  If performing the swap would exhaust total ETH supply, transaction must fail.
     require(ethReserves > amountETH, "This would drain the pool");
