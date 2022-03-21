@@ -16,19 +16,15 @@ npm install
 ```
 
 You will need to spin up a hardhat node with:
+
 `npx hardhat node`
 and run:
+
 `npx hardhat run scripts/deploy.js --network localhost`
 
 and for the frontend:
 `npm run start`
 
-# TODO
+## TODO
 
-[X] Ability to trade eth for steaks.
-[X] Ability to trade steaks for eth.
-[X] Ability to add steak-eth to the liquidity pool.
-[X] Ability to remove some steak-eth from the liquidity pool.
-[X] Ability to remove all steak-eth from the liquidity pool.
-[] Complete the tests in the tests directory.
-[] Stylize so it doesn't look like a 90's page.
+- []: make use of useEffect in Swap, Add/remove liquidity.

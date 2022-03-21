@@ -5,6 +5,8 @@ import "./interfaces/IERC20.sol";
 import "./libraries/Ownable.sol";
 import "./SteakToken.sol";
 
+import "hardhat/console.sol";
+
 /* This exchange is based off of Uniswap V1. The original whitepaper for the constant product rule
  * can be found here:
  * https://github.com/runtimeverification/verified-smart-contracts/blob/uniswap/uniswap/x-y-k.pdf
@@ -23,7 +25,7 @@ contract SteakExchange is Ownable {
   uint256 public k;
 
   // liquidity rewards
-  uint256 private swapFeeNumerator = 0;
+  uint256 private swapFeeNumerator = 1;
   uint256 private swapFeeDenominator = 100;
 
   mapping(address => uint256) public shares;
@@ -197,15 +199,20 @@ contract SteakExchange is Ownable {
    * exhaust the total supply of ETH inside the exchange, the transaction must fail.
    */
   function swapTokensForETH(uint256 amountTokens) external payable {
-    // Calculate the new reserve projections which keep k constant after adding amountTokens KGB's to the pool, less fees
-    // The KGB remainder token (fee) just remains in the exchange account, but without being assigned to the pool yet
     uint256 amountTokensExFee = amountTokens -
       ((amountTokens * swapFeeNumerator) / swapFeeDenominator);
+    console.log(amountTokens);
+    console.log(swapFeeNumerator);
+    console.log(swapFeeDenominator);
+    console.log(amountTokensExFee);
     uint256 newTokenReserve = tokenReserves + amountTokensExFee;
+    console.log(newTokenReserve);
     uint256 newETHReserve = k / newTokenReserve;
+    console.log(newETHReserve);
 
     // Amount to return for the swap falls out directly from projected pool reserve
     uint256 amountETH = ethReserves - newETHReserve;
+    console.log(amountETH);
 
     //  If performing the swap would exhaust total ETH supply, transaction must fail.
     require(ethReserves > amountETH, "This would drain the pool");

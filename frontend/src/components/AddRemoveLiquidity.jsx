@@ -1,15 +1,15 @@
-import { ethers } from "ethers";
+import {ethers} from "ethers";
 import React from "react";
-import { useExchange } from "../context/ExchangeContext";
-import { useWallet } from "../context/WalletContext";
-import { useSteak } from "../context/SteakContext";
+import {useExchange} from "../context/ExchangeContext";
+import {useWallet} from "../context/WalletContext";
+import {useSteak} from "../context/SteakContext";
 
 export default function AddRemoveLiquidity() {
-  const { steakExchangeContract, walletLiquidity } = useExchange();
-  const { steakContract } = useSteak();
+  const {steakExchangeContract, walletLiquidity} = useExchange();
+  const {steakContract} = useSteak();
   const [addAmount, setAddAmount] = React.useState(0);
   const [removeAmount, setRemoveAmount] = React.useState(0);
-  const { walletAddress } = useWallet();
+  const {walletAddress} = useWallet();
 
   async function removeLiquidity() {
     if (steakExchangeContract) {
